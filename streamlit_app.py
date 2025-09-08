@@ -68,9 +68,13 @@ if "logged_in" not in st.session_state:
 
 # Clear input fields after saving
 if "clear_inputs" in st.session_state and st.session_state.clear_inputs:
-    for key in ["customer_name", "service_provided", "addons",
-                "tech_name", "tech_type", "service_date", "amount",
-                "new_cashier_username", "new_cashier_password", "new_cashier_fullname"]:
+    for key in [
+        # Transaction form
+        "customer_name", "service_provided", "addons",
+        "tech_name", "tech_type", "service_date", "amount",
+        # Cashier form
+        "new_cashier_username", "new_cashier_password", "new_cashier_fullname"
+    ]:
         if key in st.session_state:
             del st.session_state[key]
     st.session_state.clear_inputs = False
