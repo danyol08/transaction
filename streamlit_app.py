@@ -216,4 +216,5 @@ elif menu == "Reports & CSV":
             report_date = st.date_input("Select date", value=date.today(), key="report_date")
         with right:
             cashier_options = ["(Current Cashier Only)", "All Cashiers"] + get_cashier_usernames()
-            cashier_choice = st.selectbox("Cashier filter", options=cashier_options, index=0, key
+           cashier_choice = st.selectbox("Cashier filter", options=cashier_options, index=0, key="cashier_filter")
+
