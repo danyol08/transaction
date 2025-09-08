@@ -41,7 +41,7 @@ st.markdown(hide_st_style, unsafe_allow_html=True)
 # Read keys from Streamlit secrets (preferred) or environment variables
 SUPABASE_URL = st.secrets.get("SUPABASE_URL", os.getenv("SUPABASE_URL"))
 SUPABASE_KEY = st.secrets.get("SUPABASE_ANON_KEY", os.getenv("SUPABASE_ANON_KEY"))
-@@ -32,16 +57,20 @@ def hash_password(pw: str) -> str:
+-32,16 +57,20 @@ def hash_password(pw: str) -> str:
 def try_df(rows):
     return pd.DataFrame(rows) if rows else pd.DataFrame()
 
