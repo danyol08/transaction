@@ -117,18 +117,21 @@ with st.sidebar:
 if menu == "Add Transaction":
     st.subheader("➕ Add New Transaction")
 
-    c1, c2 = st.columns([2,1])
-    with c1:
-        customer = st.text_input("Customer Name *", key="customer_name")
-        service = st.text_input("Service Provided *", key="service_provided", placeholder="e.g., Gel Manicure, Classic Lashes")
-        addons = st.text_area("Add-ons (optional)", key="addons", placeholder="e.g., Nail art, Extra volume")
-    with c2:
-        technician_name = st.text_input("Technician Name *", key="tech_name")
-        technician_type = st.selectbox("Technician Type *", ["Nails", "Lashes", "Other"], key="tech_type")
-        service_date = st.date_input("Date of Service *", value=date.today(), key="service_date")
-        amount = st.number_input("Amount (₱) *", min_value=0.0, step=50.0, format="%.2f", key="amount")
+    with st.form("txn_form", clear_on_submit=True):
+        c1, c2 = st.columns([2,1])
+        with c1:
+            customer = st.text_input("Customer Name *")
+            service = st.text_input("Service Provided *", placeholder="e.g., Gel Manicure, Classic Lashes")
+            addons = st.text_area("Add-ons (optional)", placeholder="e.g., Nail art, Extra volume")
+        with c2:
+            technician_name = st.text_input("Technician Name *")
+            technician_type = st.selectbox("Technician Type *", ["Nails", "Lashes", "Other"])
+            service_date = st.date_input("Date of Service *", value=date.today())
+            amount = st.number_input("Amount (₱) *", min_value=0.0, step=50.0, format="%.2f")
 
-    if st.button("💾 Save Transaction", type="primary", key="save_txn_btn"):
+        submitted = st.form_submit_button("💾 Save Transaction")
+
+    if submitted:
         if customer and service and technician_name and technician_type and amount > 0:
             payload = {
                 "customer_name": customer.strip(),
@@ -144,13 +147,10 @@ if menu == "Add Transaction":
                 insert_transaction(payload)
                 refresh_transactions_cache()
                 st.success("✅ Transaction saved!")
-                st.session_state.clear_inputs = True
-                st.rerun()
             except Exception as e:
                 st.error(f"Error saving transaction: {e}")
         else:
             st.warning("Please complete all required fields (*) and amount > 0.")
-
 # ========== View Transactions ==========
 elif menu == "View Transactions":
     st.subheader("📊 All Transactions")
