@@ -155,31 +155,31 @@ if menu == "Add Transaction":
         service_date = st.date_input("Date of Service *", value=date.today(), key="service_date")
         amount = st.number_input("Amount (₱) *", min_value=0.0, step=50.0, format="%.2f", key="amount")
 
-    if st.button("💾 Save Transaction", type="primary", key="save_txn_btn"):
-    if customer and service and technician_name and technician_type and amount > 0:
-        payload = {
-            "customer_name": customer.strip(),
-            "service": service.strip(),
-            "technician_name": technician_name.strip(),
-            "technician_type": technician_type,
-            "addons": addons.strip() if addons else None,
-            "date_of_service": str(service_date),
-            "amount": float(amount),
-            "cashier_username": st.session_state.cashier,
-        }
-        try:
-            insert_transaction(payload)
-            refresh_transactions_cache()
-            st.success("✅ Transaction saved!")
+     if st.button("💾 Save Transaction", type="primary", key="save_txn_btn"):
+        if customer and service and technician_name and technician_type and amount > 0:
+            payload = {
+                "customer_name": customer.strip(),
+                "service": service.strip(),
+                "technician_name": technician_name.strip(),
+                "technician_type": technician_type,
+                "addons": addons.strip() if addons else None,
+                "date_of_service": str(service_date),
+                "amount": float(amount),
+                "cashier_username": st.session_state.cashier,
+            }
+            try:
+                insert_transaction(payload)
+                refresh_transactions_cache()
+                st.success("✅ Transaction saved!")
 
-            # 🔑 Set flag to clear inputs on next rerun
-            st.session_state._clear_txn = True
-            st.rerun()
+                # ✅ Set flag to clear inputs on next rerun
+                st.session_state._clear_txn = True
+                st.rerun()
 
-        except Exception as e:
-            st.error(f"Error saving transaction: {e}")
-    else:
-        st.warning("Please complete all required fields (*) and amount > 0.")
+            except Exception as e:
+                st.error(f"Error saving transaction: {e}")
+        else:
+            st.warning("Please complete all required fields (*) and amount > 0.")
 
 
 
