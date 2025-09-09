@@ -159,20 +159,15 @@ if menu == "Add Transaction":
                 refresh_transactions_cache()
                 st.success("✅ Transaction saved!")
 
-                # 🔑 Clear input fields
-                st.session_state.customer_name = ""
-                st.session_state.service_provided = ""
-                st.session_state.addons = ""
-                st.session_state.tech_name = ""
-                st.session_state.tech_type = "Nails"
-                st.session_state.service_date = date.today()
-                st.session_state.amount = 0.0
-
+                # ✅ Set flag to clear inputs on next rerun
+                st.session_state._clear_txn = True
                 st.rerun()
+
             except Exception as e:
                 st.error(f"Error saving transaction: {e}")
         else:
             st.warning("Please complete all required fields (*) and amount > 0.")
+
 
 # ========== View Transactions ==========
 elif menu == "View Transactions":
