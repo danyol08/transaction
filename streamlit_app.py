@@ -122,50 +122,36 @@ with st.sidebar:
 # -----------------------------
 # Add Transaction
 # -----------------------------
-if menu == "Add Transaction":
-    st.subheader("➕ Add New Transaction")
+st.set_page_config(page_title="Form Reset Demo")
 
-    # ✅ Clear inputs if flagged
-    if st.session_state.get("_clear_txn"):
-        for k in ["customer_name", "service_provided", "addons",
-                  "tech_name", "tech_type", "service_date", "amount"]:
-            st.session_state.pop(k, None)
-        st.session_state._clear_txn = False
+# ✅ Handle clearing before rendering widgets
+if st.session_state.get("_clear_form"):
+    for k in ["customer_name", "service_provided", "addons",
+              "tech_name", "tech_type", "service_date", "amount"]:
+        st.session_state.pop(k, None)
+    st.session_state._clear_form = False
 
-    c1, c2 = st.columns([2, 1])
-    with c1:
-        customer = st.text_input("Customer Name *", key="customer_name")
-        service = st.text_input("Service Provided *", key="service_provided", placeholder="e.g., Gel Manicure, Classic Lashes")
-        addons = st.text_area("Add-ons (optional)", key="addons", placeholder="e.g., Nail art, Extra volume")
-    with c2:
-        technician_name = st.text_input("Technician Name *", key="tech_name")
-        technician_type = st.selectbox("Technician Type *", ["Nails", "Lashes", "Other"], key="tech_type")
-        service_date = st.date_input("Date of Service *", value=date.today(), key="service_date")
-        amount = st.number_input("Amount (₱) *", min_value=0.0, step=50.0, format="%.2f", key="amount")
+st.subheader("➕ Add New Transaction")
 
-    if st.button("💾 Save Transaction", type="primary", key="save_txn_btn"):
-        if customer and service and technician_name and technician_type and amount > 0:
-            payload = {
-                "customer_name": customer.strip(),
-                "service": service.strip(),
-                "technician_name": technician_name.strip(),
-                "technician_type": technician_type,
-                "addons": addons.strip() if addons else None,
-                "date_of_service": str(service_date),
-                "amount": float(amount),
-                "cashier_username": st.session_state.cashier,
-            }
-            try:
-                insert_transaction(payload)
-                refresh_transactions_cache()
-                st.success("✅ Transaction saved!")
-                st.session_state._clear_txn = True
-                st.rerun()
-            except Exception as e:
-                st.error(f"Error saving transaction: {e}")
-        else:
-            st.warning("Please complete all required fields (*) and amount > 0.")
+c1, c2 = st.columns([2,1])
+with c1:
+    customer = st.text_input("Customer Name *", key="customer_name")
+    service = st.text_input("Service Provided *", key="service_provided")
+    addons = st.text_area("Add-ons (optional)", key="addons")
+with c2:
+    technician_name = st.text_input("Technician Name *", key="tech_name")
+    technician_type = st.selectbox("Technician Type *", ["Nails", "Lashes", "Other"], key="tech_type")
+    service_date = st.date_input("Date of Service *", value=date.today(), key="service_date")
+    amount = st.number_input("Amount (₱) *", min_value=0.0, step=50.0, format="%.2f", key="amount")
 
+if st.button("💾 Save Transaction", type="primary"):
+    if customer and service and technician_name and amount > 0:
+        st.success("✅ Transaction saved!")
+        # ✅ Flag for clearing and rerun
+        st.session_state._clear_form = True
+        st.rerun()
+    else:
+        st.warning("Please complete all required fields (*) and amount > 0.")
 # -----------------------------
 # View Transactions
 # -----------------------------
