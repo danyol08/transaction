@@ -7,32 +7,19 @@ import streamlit as st
 from supabase import create_client, Client
 from streamlit_option_menu import option_menu
 
-# Define which fields should be cleared
-TXN_KEYS = [
-    "customer_name", "service_provided", "addons",
-    "tech_name", "tech_type", "service_date", "amount"
-]
-
-# Clear inputs before rendering widgets
-if st.session_state.get("_clear_txn"):
-    for k in TXN_KEYS:
-        st.session_state.pop(k, None)  # remove key if exists
-    st.session_state._clear_txn = False
-
-
 # -----------------------------
 # Config
 # -----------------------------
 st.set_page_config(page_title="Salon Transaction System", layout="wide")
-st.title("Salon Transaction Management System")
+st.title("💅 Salon Transaction Management System")
 
-# --- Hide Streamlit Branding, GitHub, Fork, Menu, Footer, Logo ---
+# --- Hide Streamlit Branding, GitHub, Fork, and Menu ---
 hide_st_style = """
     <style>
-        #MainMenu {visibility: hidden;}          /* Hamburger menu */
-        footer {visibility: hidden;}             /* "Made with Streamlit" */
-        header {visibility: hidden;}             /* Streamlit logo/header */
-        [data-testid="stToolbar"] {display: none;}  /* GitHub, Fork, etc. */
+        #MainMenu {visibility: hidden;}
+        footer {visibility: hidden;}
+        header {visibility: hidden;}
+        [data-testid="stToolbar"] {display: none;}
     </style>
 """
 st.markdown(hide_st_style, unsafe_allow_html=True)
@@ -90,28 +77,18 @@ def insert_transaction(payload: dict):
     return supabase.table("transactions").insert(payload).execute()
 
 # -----------------------------
-# Session state init & clear inputs handling
+# Session State Init
 # -----------------------------
 if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.cashier = None
-
-if "clear_inputs" in st.session_state and st.session_state.clear_inputs:
-    for key in [
-        "customer_name", "service_provided", "addons",
-        "tech_name", "tech_type", "service_date", "amount",
-        "new_cashier_username", "new_cashier_password", "new_cashier_fullname"
-    ]:
-        if key in st.session_state:
-            del st.session_state[key]
-    st.session_state.clear_inputs = False
 
 # -----------------------------
 # Login
 # -----------------------------
 if not st.session_state.logged_in:
     st.subheader("🔑 Cashier Login")
-    col1, col2 = st.columns([1,1])
+    col1, col2 = st.columns([1, 1])
     with col1:
         username = st.text_input("Username", key="login_username")
     with col2:
@@ -128,24 +105,34 @@ if not st.session_state.logged_in:
     st.stop()
 
 # -----------------------------
-# Main App
+# Sidebar Menu
 # -----------------------------
 with st.sidebar:
     st.success(f"Logged in as: {st.session_state.cashier}")
     menu = option_menu(
         "📋 Menu",
-        ["Add Transaction", "View Transactions", "Search Customer", "Reports & CSV", "Logout"] + (["Cashier Management"] if st.session_state.cashier == "admin" else []),
-        icons=["plus", "table", "search", "file-earmark-text", "box-arrow-right"] + (["people"] if st.session_state.cashier == "admin" else []),
+        ["Add Transaction", "View Transactions", "Search Customer", "Reports & CSV", "Logout"]
+        + (["Cashier Management"] if st.session_state.cashier == "admin" else []),
+        icons=["plus", "table", "search", "file-earmark-text", "box-arrow-right"]
+        + (["people"] if st.session_state.cashier == "admin" else []),
         menu_icon="list",
         default_index=0,
     )
 
-# ========== Add Transaction ==========
-# ========== Add Transaction ==========
+# -----------------------------
+# Add Transaction
+# -----------------------------
 if menu == "Add Transaction":
     st.subheader("➕ Add New Transaction")
 
-    c1, c2 = st.columns([2,1])
+    # ✅ Clear inputs if flagged
+    if st.session_state.get("_clear_txn"):
+        for k in ["customer_name", "service_provided", "addons",
+                  "tech_name", "tech_type", "service_date", "amount"]:
+            st.session_state.pop(k, None)
+        st.session_state._clear_txn = False
+
+    c1, c2 = st.columns([2, 1])
     with c1:
         customer = st.text_input("Customer Name *", key="customer_name")
         service = st.text_input("Service Provided *", key="service_provided", placeholder="e.g., Gel Manicure, Classic Lashes")
@@ -156,7 +143,6 @@ if menu == "Add Transaction":
         service_date = st.date_input("Date of Service *", value=date.today(), key="service_date")
         amount = st.number_input("Amount (₱) *", min_value=0.0, step=50.0, format="%.2f", key="amount")
 
-    # ✅ Correct indentation here (same level as with c1/c2)
     if st.button("💾 Save Transaction", type="primary", key="save_txn_btn"):
         if customer and service and technician_name and technician_type and amount > 0:
             payload = {
@@ -173,18 +159,16 @@ if menu == "Add Transaction":
                 insert_transaction(payload)
                 refresh_transactions_cache()
                 st.success("✅ Transaction saved!")
-
-                # ✅ Set flag to clear inputs on next rerun
                 st.session_state._clear_txn = True
                 st.rerun()
-
             except Exception as e:
                 st.error(f"Error saving transaction: {e}")
         else:
             st.warning("Please complete all required fields (*) and amount > 0.")
 
-
-# ========== View Transactions ==========
+# -----------------------------
+# View Transactions
+# -----------------------------
 elif menu == "View Transactions":
     st.subheader("📊 All Transactions")
     df = get_transactions_df()
@@ -194,7 +178,9 @@ elif menu == "View Transactions":
         st.dataframe(df, use_container_width=True, height=460)
         st.caption("Tip: Use the ‘Reports & CSV’ tab to filter by date/cashier and download CSV.")
 
-# ========== Search Customer ==========
+# -----------------------------
+# Search Customer
+# -----------------------------
 elif menu == "Search Customer":
     st.subheader("🔍 Search Customer Records")
     df = get_transactions_df()
@@ -212,14 +198,16 @@ elif menu == "Search Customer":
                 total_spent = results["amount"].sum()
                 st.success(f"💰 Total spent by {name_query}: ₱{total_spent:,.2f}")
 
-# ========== Reports & CSV ==========
+# -----------------------------
+# Reports & CSV
+# -----------------------------
 elif menu == "Reports & CSV":
     st.subheader("🧾 Daily Totals, Filters & CSV Export")
     df = get_transactions_df()
     if df.empty:
         st.info("No transactions available.")
     else:
-        left, right = st.columns([1,1])
+        left, right = st.columns([1, 1])
         with left:
             report_date = st.date_input("Select date", value=date.today(), key="report_date")
         with right:
@@ -264,7 +252,9 @@ elif menu == "Reports & CSV":
             key="download_all"
         )
 
-# ========== Cashier Management ==========
+# -----------------------------
+# Cashier Management
+# -----------------------------
 elif menu == "Cashier Management":
     if st.session_state.cashier != "admin":
         st.error("❌ Only admin can manage cashiers.")
@@ -275,6 +265,12 @@ elif menu == "Cashier Management":
 
         # Tab 1: Add Cashier
         with tab1:
+            # ✅ Clear cashier form inputs if flagged
+            if st.session_state.get("_clear_cashier"):
+                for k in ["new_cashier_username", "new_cashier_password", "new_cashier_fullname"]:
+                    st.session_state.pop(k, None)
+                st.session_state._clear_cashier = False
+
             new_username = st.text_input("New Cashier Username *", key="new_cashier_username")
             new_password = st.text_input("New Cashier Password *", type="password", key="new_cashier_password")
             full_name = st.text_input("Full Name", key="new_cashier_fullname")
@@ -290,7 +286,7 @@ elif menu == "Cashier Management":
                             "active": True
                         }).execute()
                         st.success(f"✅ Cashier '{new_username}' added successfully!")
-                        st.session_state.clear_inputs = True
+                        st.session_state._clear_cashier = True
                         st.rerun()
                     except Exception as e:
                         st.error(f"⚠️ Error adding cashier: {e}")
@@ -315,7 +311,9 @@ elif menu == "Cashier Management":
                     st.success(f"✅ Cashier '{cashier_to_update}' status updated to {action}")
                     st.rerun()
 
-# ========== Logout ==========
+# -----------------------------
+# Logout
+# -----------------------------
 elif menu == "Logout":
     st.session_state.logged_in = False
     st.session_state.cashier = None
