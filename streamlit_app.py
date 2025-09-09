@@ -7,6 +7,19 @@ import streamlit as st
 from supabase import create_client, Client
 from streamlit_option_menu import option_menu
 
+# Define which fields should be cleared
+TXN_KEYS = [
+    "customer_name", "service_provided", "addons",
+    "tech_name", "tech_type", "service_date", "amount"
+]
+
+# Clear inputs before rendering widgets
+if st.session_state.get("_clear_txn"):
+    for k in TXN_KEYS:
+        st.session_state.pop(k, None)  # remove key if exists
+    st.session_state._clear_txn = False
+
+
 # -----------------------------
 # Config
 # -----------------------------
@@ -143,30 +156,31 @@ if menu == "Add Transaction":
         amount = st.number_input("Amount (₱) *", min_value=0.0, step=50.0, format="%.2f", key="amount")
 
     if st.button("💾 Save Transaction", type="primary", key="save_txn_btn"):
-        if customer and service and technician_name and technician_type and amount > 0:
-            payload = {
-                "customer_name": customer.strip(),
-                "service": service.strip(),
-                "technician_name": technician_name.strip(),
-                "technician_type": technician_type,
-                "addons": addons.strip() if addons else None,
-                "date_of_service": str(service_date),
-                "amount": float(amount),
-                "cashier_username": st.session_state.cashier,
-            }
-            try:
-                insert_transaction(payload)
-                refresh_transactions_cache()
-                st.success("✅ Transaction saved!")
+    if customer and service and technician_name and technician_type and amount > 0:
+        payload = {
+            "customer_name": customer.strip(),
+            "service": service.strip(),
+            "technician_name": technician_name.strip(),
+            "technician_type": technician_type,
+            "addons": addons.strip() if addons else None,
+            "date_of_service": str(service_date),
+            "amount": float(amount),
+            "cashier_username": st.session_state.cashier,
+        }
+        try:
+            insert_transaction(payload)
+            refresh_transactions_cache()
+            st.success("✅ Transaction saved!")
 
-                # ✅ Set flag to clear inputs on next rerun
-                st.session_state._clear_txn = True
-                st.rerun()
+            # 🔑 Set flag to clear inputs on next rerun
+            st.session_state._clear_txn = True
+            st.rerun()
 
-            except Exception as e:
-                st.error(f"Error saving transaction: {e}")
-        else:
-            st.warning("Please complete all required fields (*) and amount > 0.")
+        except Exception as e:
+            st.error(f"Error saving transaction: {e}")
+    else:
+        st.warning("Please complete all required fields (*) and amount > 0.")
+
 
 
 # ========== View Transactions ==========
