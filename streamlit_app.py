@@ -13,7 +13,20 @@ from streamlit_option_menu import option_menu
 st.set_page_config(page_title="Salon Transaction System", layout="wide")
 st.title("💅 Salon Transaction Management System")
 
-# Read keys from Streamlit secrets (preferred) or environment variables
+# --- Hide Streamlit Branding, GitHub, Fork, Menu, Footer, Logo ---
+hide_st_style = """
+    <style>
+        #MainMenu {visibility: hidden;}          /* Hamburger menu */
+        footer {visibility: hidden;}             /* "Made with Streamlit" */
+        header {visibility: hidden;}             /* Streamlit logo/header */
+        [data-testid="stToolbar"] {display: none;}  /* GitHub, Fork, etc. */
+    </style>
+"""
+st.markdown(hide_st_style, unsafe_allow_html=True)
+
+# -----------------------------
+# Supabase Config
+# -----------------------------
 SUPABASE_URL = st.secrets.get("SUPABASE_URL", os.getenv("SUPABASE_URL"))
 SUPABASE_KEY = st.secrets.get("SUPABASE_ANON_KEY", os.getenv("SUPABASE_ANON_KEY"))
 
@@ -32,16 +45,20 @@ def hash_password(pw: str) -> str:
 def try_df(rows):
     return pd.DataFrame(rows) if rows else pd.DataFrame()
 
-@st.cache_data(ttl=30)
+@st.cache_data(ttl=60)
 def get_transactions_df() -> pd.DataFrame:
-    res = supabase.table("transactions").select("*").order("date_of_service", desc=True).execute()
-    df = try_df(res.data)
-    if not df.empty:
-        if "amount" in df.columns:
-            df["amount"] = pd.to_numeric(df["amount"], errors="coerce").fillna(0.0)
-        if "date_of_service" in df.columns:
-            df["date_of_service"] = df["date_of_service"].astype(str)
-    return df
+    try:
+        res = supabase.table("transactions").select("*").order("date_of_service", desc=True).execute()
+        df = try_df(res.data)
+        if not df.empty:
+            if "amount" in df.columns:
+                df["amount"] = pd.to_numeric(df["amount"], errors="coerce").fillna(0.0)
+            if "date_of_service" in df.columns:
+                df["date_of_service"] = df["date_of_service"].astype(str)
+        return df
+    except Exception as e:
+        st.error(f"⚠️ Database error: {e}")
+        return pd.DataFrame()
 
 def refresh_transactions_cache():
     get_transactions_df.clear()
@@ -66,13 +83,10 @@ if "logged_in" not in st.session_state:
     st.session_state.logged_in = False
     st.session_state.cashier = None
 
-# Clear input fields after saving
 if "clear_inputs" in st.session_state and st.session_state.clear_inputs:
     for key in [
-        # Transaction form
-        "customer_name", "service", "addons",
+        "customer_name", "service_provided", "addons",
         "tech_name", "tech_type", "service_date", "amount",
-        # Cashier form
         "new_cashier_username", "new_cashier_password", "new_cashier_fullname"
     ]:
         if key in st.session_state:
@@ -117,30 +131,27 @@ with st.sidebar:
 if menu == "Add Transaction":
     st.subheader("➕ Add New Transaction")
 
-    with st.form("txn_form", clear_on_submit=True):
-        c1, c2 = st.columns([2, 1])
-        with c1:
-            customer = st.text_input("Customer Name *", key="customer_name")
-            service = st.text_input("Service Provided *", key="service", placeholder="e.g., Gel Manicure, Classic Lashes")
-            addons = st.text_area("Add-ons (optional)", key="addons", placeholder="e.g., Nail art, Extra volume")
-        with c2:
-            technician_name = st.text_input("Technician Name *", key="tech_name")
-            technician_type = st.selectbox("Technician Type *", ["Nails", "Lashes", "Other"], key="tech_type")
-            service_date = st.date_input("Date of Service *", value=date.today(), key="service_date")
-            amount = st.number_input("Amount (₱) *", min_value=0.0, step=50.0, format="%.2f", key="amount")
+    c1, c2 = st.columns([2,1])
+    with c1:
+        customer = st.text_input("Customer Name *", key="customer_name")
+        service = st.text_input("Service Provided *", key="service_provided", placeholder="e.g., Gel Manicure, Classic Lashes")
+        addons = st.text_area("Add-ons (optional)", key="addons", placeholder="e.g., Nail art, Extra volume")
+    with c2:
+        technician_name = st.text_input("Technician Name *", key="tech_name")
+        technician_type = st.selectbox("Technician Type *", ["Nails", "Lashes", "Other"], key="tech_type")
+        service_date = st.date_input("Date of Service *", value=date.today(), key="service_date")
+        amount = st.number_input("Amount (₱) *", min_value=0.0, step=50.0, format="%.2f", key="amount")
 
-        submitted = st.form_submit_button("💾 Save Transaction")
-
-     if submitted:
+    if st.button("💾 Save Transaction", type="primary", key="save_txn_btn"):
         if customer and service and technician_name and technician_type and amount > 0:
             payload = {
                 "customer_name": customer.strip(),
                 "service": service.strip(),
+                "technician_name": technician_name.strip(),
+                "technician_type": technician_type,
                 "addons": addons.strip() if addons else None,
-                "tech_name": technician_name.strip(),
-                "tech_type": technician_type,
                 "date_of_service": str(service_date),
-                "amount": amount,
+                "amount": float(amount),
                 "cashier_username": st.session_state.cashier,
             }
             try:
@@ -148,12 +159,11 @@ if menu == "Add Transaction":
                 refresh_transactions_cache()
                 st.success("✅ Transaction saved!")
                 st.session_state.clear_inputs = True
-                st.experimental_rerun()
+                st.rerun()
             except Exception as e:
                 st.error(f"Error saving transaction: {e}")
         else:
-            st.warning("Please complete all required fields (*) and enter an amount greater than 0.")
-
+            st.warning("Please complete all required fields (*) and amount > 0.")
 
 # ========== View Transactions ==========
 elif menu == "View Transactions":
@@ -244,7 +254,7 @@ elif menu == "Cashier Management":
 
         tab1, tab2 = st.tabs(["➕ Add Cashier", "📋 View / Manage Cashiers"])
 
-        # --- Tab 1: Add New Cashier ---
+        # Tab 1: Add Cashier
         with tab1:
             new_username = st.text_input("New Cashier Username *", key="new_cashier_username")
             new_password = st.text_input("New Cashier Password *", type="password", key="new_cashier_password")
@@ -268,7 +278,7 @@ elif menu == "Cashier Management":
                 else:
                     st.warning("Please fill in username and password.")
 
-        # --- Tab 2: View and Manage Cashiers ---
+        # Tab 2: Manage Cashiers
         with tab2:
             res = supabase.table("cashiers").select("id, username, full_name, active").order("id").execute()
             cashiers_df = pd.DataFrame(res.data) if res.data else pd.DataFrame()
@@ -277,7 +287,6 @@ elif menu == "Cashier Management":
                 st.info("No cashiers found.")
             else:
                 st.dataframe(cashiers_df, use_container_width=True)
-
                 cashier_to_update = st.selectbox("Select cashier to activate/deactivate", cashiers_df["username"].tolist(), key="manage_cashier")
                 action = st.radio("Action", ["Deactivate", "Activate"], horizontal=True, key="manage_action")
 
@@ -285,6 +294,7 @@ elif menu == "Cashier Management":
                     new_status = True if action == "Activate" else False
                     supabase.table("cashiers").update({"active": new_status}).eq("username", cashier_to_update).execute()
                     st.success(f"✅ Cashier '{cashier_to_update}' status updated to {action}")
+                    st.rerun()
 
 # ========== Logout ==========
 elif menu == "Logout":
