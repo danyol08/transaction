@@ -125,6 +125,11 @@ with st.sidebar:
 if menu == "Add Transaction":
     st.subheader("➕ Add New Transaction")
 
+    # ✅ Show success message if present
+    if st.session_state.get("txn_success"):
+        st.success(st.session_state.txn_success)
+        st.session_state.txn_success = None  # clear after showing once
+
     # ✅ Check if we should reset defaults
     if st.session_state.get("reset_txn", False):
         default_customer = ""
@@ -151,7 +156,9 @@ if menu == "Add Transaction":
         addons = st.text_area("Add-ons (optional)", value=default_addons, key="addons")
     with c2:
         technician_name = st.text_input("Technician Name *", value=default_tech_name, key="tech_name")
-        technician_type = st.selectbox("Technician Type *", ["Nails", "Lashes", "Other"], index=["Nails", "Lashes", "Other"].index(default_tech_type), key="tech_type")
+        technician_type = st.selectbox("Technician Type *", ["Nails", "Lashes", "Other"], 
+                                       index=["Nails", "Lashes", "Other"].index(default_tech_type), 
+                                       key="tech_type")
         service_date = st.date_input("Date of Service *", value=default_service_date, key="service_date")
         amount = st.number_input("Amount (₱) *", min_value=0.0, step=50.0, format="%.2f", value=default_amount, key="amount")
 
@@ -170,7 +177,9 @@ if menu == "Add Transaction":
             try:
                 insert_transaction(payload)
                 refresh_transactions_cache()
-                st.success("✅ Transaction saved!")
+
+                # ✅ Save success message in session_state
+                st.session_state.txn_success = "✅ Transaction saved!"
 
                 # ✅ Clear next render
                 st.session_state.reset_txn = True
@@ -180,6 +189,7 @@ if menu == "Add Transaction":
                 st.error(f"Error saving transaction: {e}")
         else:
             st.warning("Please complete all required fields (*) and amount > 0.")
+
 
 # -----------------------------
 # View Transactions
