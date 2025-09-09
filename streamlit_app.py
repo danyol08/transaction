@@ -281,6 +281,7 @@ elif menu == "Reports & CSV":
 # Cashier Management
 # -----------------------------
 # ========== Cashier Management ==========
+# ========== Cashier Management ==========
 elif menu == "Cashier Management":
     if st.session_state.cashier != "admin":
         st.error("❌ Only admin can manage cashiers.")
@@ -349,6 +350,7 @@ elif menu == "Cashier Management":
                     supabase.table("cashiers").update({"active": new_status}).eq("username", cashier_to_update).execute()
                     st.success(f"✅ Cashier '{cashier_to_update}' status updated to {action}")
                     st.rerun()
+
 
 
 # -----------------------------
