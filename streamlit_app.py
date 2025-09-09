@@ -158,7 +158,16 @@ if menu == "Add Transaction":
                 insert_transaction(payload)
                 refresh_transactions_cache()
                 st.success("✅ Transaction saved!")
-                st.session_state.clear_inputs = True
+
+                # 🔑 Clear input fields
+                st.session_state.customer_name = ""
+                st.session_state.service_provided = ""
+                st.session_state.addons = ""
+                st.session_state.tech_name = ""
+                st.session_state.tech_type = "Nails"
+                st.session_state.service_date = date.today()
+                st.session_state.amount = 0.0
+
                 st.rerun()
             except Exception as e:
                 st.error(f"Error saving transaction: {e}")
