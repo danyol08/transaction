@@ -181,8 +181,6 @@ if menu == "Add Transaction":
         else:
             st.warning("Please complete all required fields (*) and amount > 0.")
 
-
-
 # ========== View Transactions ==========
 elif menu == "View Transactions":
     st.subheader("📊 All Transactions")
