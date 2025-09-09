@@ -340,32 +340,42 @@ elif menu == "Cashier Management":
                 else:
                     st.warning("Please fill in username and password.")
 
-        with tab2:
+       with tab2:
             st.subheader("📋 Cashier List")
 
             try:
-                cashiers = supabase.table("cashiers").select("*").execute().data
+                cashiers = supabase.table("cashiers").select("id, username, full_name, active").execute().data
                 if cashiers:
-                    for cashier in cashiers:
-                        col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
-                        with col1:
-                            st.write(f"👤 **{cashier['username']}**")
-                        with col2:
-                            st.write(cashier.get("full_name", "-"))
-                        with col3:
-                            st.write("✅ Active" if cashier.get("active", True) else "❌ Inactive")
-                        with col4:
-                            if st.button("🗑️ Delete", key=f"delete_{cashier['id']}"):
-                                try:
-                                    supabase.table("cashiers").delete().eq("id", cashier["id"]).execute()
-                                    st.success(f"Cashier '{cashier['username']}' deleted!")
-                                    st.rerun()
-                                except Exception as e:
-                                    st.error(f"Error deleting cashier: {e}")
+                    df = pd.DataFrame(cashiers)
+
+                # Show cashier table
+                st.dataframe(df, use_container_width=True)
+    
+                # Select cashier to update password
+                selected_user = st.selectbox("Select cashier to change password:", [c["username"] for c in cashiers])
+    
+                new_pass = st.text_input("Enter new password", type="password", key="reset_pass_input")
+                if st.button("🔑 Update Password", type="primary", key="reset_pass_btn"):
+                    if not new_pass:
+                        st.warning("⚠️ Please enter a new password.")
+                    else:
+                        try:
+                            hashed_pw = hash_password(new_pass)
+                            supabase.table("cashiers").update({
+                                "password": hashed_pw
+                            }).eq("username", selected_user).execute()
+    
+                            st.success(f"✅ Password for cashier '{selected_user}' has been updated!")
+                            st.session_state.reset_pass_input = ""  # clear input
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"⚠️ Error updating password: {e}")
+    
                 else:
                     st.info("No cashiers found.")
             except Exception as e:
                 st.error(f"⚠️ Error fetching cashiers: {e}")
+
 
 
 
