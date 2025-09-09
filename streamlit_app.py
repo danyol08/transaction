@@ -133,9 +133,9 @@ if menu == "Add Transaction":
 
     if submitted:
         if customer and service and technician_name and technician_type and amount > 0:
-            payload = {
+           payload = {
                 "customer_name": customer.strip(),
-                "service": service.strip(),
+                "service": service.strip(),   # 👈 this is the column name
                 "addons": addons.strip() if addons else None,
                 "tech_name": technician_name.strip(),
                 "tech_type": technician_type,
@@ -143,6 +143,7 @@ if menu == "Add Transaction":
                 "amount": amount,
                 "cashier_username": st.session_state.cashier,
             }
+
             try:
                 insert_transaction(payload)
                 refresh_transactions_cache()
