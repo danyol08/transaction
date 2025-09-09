@@ -340,7 +340,7 @@ elif menu == "Cashier Management":
                 else:
                     st.warning("Please fill in username and password.")
 
-       with tab2:
+           with tab2:
             st.subheader("📋 Cashier List")
 
             try:
