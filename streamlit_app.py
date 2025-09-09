@@ -297,11 +297,15 @@ elif menu == "Cashier Management":
                 st.success(st.session_state.cashier_success)
                 st.session_state.cashier_success = None  # clear after showing once
 
-            # ✅ Check if we should reset defaults
+            ## ✅ Check if we should reset defaults
             if st.session_state.get("reset_cashier", False):
                 default_username = ""
                 default_password = ""
                 default_fullname = ""
+                # remove old keys para mag-clear talaga
+                st.session_state.pop("new_cashier_username", None)
+                st.session_state.pop("new_cashier_password", None)
+                st.session_state.pop("new_cashier_fullname", None)
                 st.session_state.reset_cashier = False
             else:
                 default_username = st.session_state.get("new_cashier_username", "")
