@@ -141,6 +141,7 @@ with st.sidebar:
     )
 
 # ========== Add Transaction ==========
+# ========== Add Transaction ==========
 if menu == "Add Transaction":
     st.subheader("➕ Add New Transaction")
 
@@ -155,7 +156,8 @@ if menu == "Add Transaction":
         service_date = st.date_input("Date of Service *", value=date.today(), key="service_date")
         amount = st.number_input("Amount (₱) *", min_value=0.0, step=50.0, format="%.2f", key="amount")
 
-     if st.button("💾 Save Transaction", type="primary", key="save_txn_btn"):
+    # ✅ Correct indentation here (same level as with c1/c2)
+    if st.button("💾 Save Transaction", type="primary", key="save_txn_btn"):
         if customer and service and technician_name and technician_type and amount > 0:
             payload = {
                 "customer_name": customer.strip(),
@@ -180,6 +182,7 @@ if menu == "Add Transaction":
                 st.error(f"Error saving transaction: {e}")
         else:
             st.warning("Please complete all required fields (*) and amount > 0.")
+
 
 # ========== View Transactions ==========
 elif menu == "View Transactions":
