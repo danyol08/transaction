@@ -70,7 +70,7 @@ if "logged_in" not in st.session_state:
 if "clear_inputs" in st.session_state and st.session_state.clear_inputs:
     for key in [
         # Transaction form
-        "customer_name", "service_provided", "addons",
+        "customer_name", "service", "addons",
         "tech_name", "tech_type", "service_date", "amount",
         # Cashier form
         "new_cashier_username", "new_cashier_password", "new_cashier_fullname"
@@ -121,7 +121,7 @@ if menu == "Add Transaction":
         c1, c2 = st.columns([2, 1])
         with c1:
             customer = st.text_input("Customer Name *", key="customer_name")
-            service = st.text_input("Service Provided *", key="service_provided", placeholder="e.g., Gel Manicure, Classic Lashes")
+            service = st.text_input("Service Provided *", key="service", placeholder="e.g., Gel Manicure, Classic Lashes")
             addons = st.text_area("Add-ons (optional)", key="addons", placeholder="e.g., Nail art, Extra volume")
         with c2:
             technician_name = st.text_input("Technician Name *", key="tech_name")
@@ -135,7 +135,7 @@ if menu == "Add Transaction":
         if customer and service and technician_name and technician_type and amount > 0:
             payload = {
                 "customer_name": customer.strip(),
-                "service_provided": service.strip(),
+                "service": service.strip(),
                 "addons": addons.strip() if addons else None,
                 "tech_name": technician_name.strip(),
                 "tech_type": technician_type,
