@@ -280,6 +280,7 @@ elif menu == "Reports & CSV":
 # -----------------------------
 # Cashier Management
 # -----------------------------
+# ========== Cashier Management ==========
 elif menu == "Cashier Management":
     if st.session_state.cashier != "admin":
         st.error("❌ Only admin can manage cashiers.")
@@ -288,18 +289,18 @@ elif menu == "Cashier Management":
 
         tab1, tab2 = st.tabs(["➕ Add Cashier", "📋 View / Manage Cashiers"])
 
-        # Tab 1: Add Cashier
-       with tab1:
+        # ---------- Tab 1: Add Cashier ----------
+        with tab1:
             # ✅ Clear cashier form inputs if flagged
             if st.session_state.get("_clear_cashier"):
                 for k in ["new_cashier_username", "new_cashier_password", "new_cashier_fullname"]:
                     st.session_state.pop(k, None)
                 st.session_state._clear_cashier = False
-        
-                # 🔑 Always render inputs
-                new_username = st.text_input("New Cashier Username *", key="new_cashier_username")
-                new_password = st.text_input("New Cashier Password *", type="password", key="new_cashier_password")
-                full_name = st.text_input("Full Name", key="new_cashier_fullname")
+
+            # 🔑 Cashier form inputs
+            new_username = st.text_input("New Cashier Username *", key="new_cashier_username")
+            new_password = st.text_input("New Cashier Password *", type="password", key="new_cashier_password")
+            full_name = st.text_input("Full Name", key="new_cashier_fullname")
 
             if st.button("Save Cashier", type="primary", key="save_cashier_btn"):
                 if new_username and new_password:
@@ -311,30 +312,23 @@ elif menu == "Cashier Management":
                             "full_name": full_name.strip() if full_name else None,
                             "active": True
                         }).execute()
-        
+
                         # ✅ Save success message for next run
                         st.session_state.success_message = f"✅ Cashier '{new_username}' added successfully!"
                         st.session_state._clear_cashier = True
                         st.rerun()
-        
+
                     except Exception as e:
                         st.error(f"⚠️ Error adding cashier: {e}")
-                    else:
-                        st.warning("Please fill in username and password.")
+                else:
+                    st.warning("Please fill in username and password.")
 
-# ✅ Show success message after rerun
-if st.session_state.get("success_message"):
-    st.success(st.session_state.success_message)
-    st.session_state.success_message = None
+            # ✅ Show success message after rerun
+            if st.session_state.get("success_message"):
+                st.success(st.session_state.success_message)
+                st.session_state.success_message = None
 
-
-# ✅ Show success message after rerun
-if "success_message" in st.session_state:
-    st.success(st.session_state.success_message)
-    del st.session_state.success_message
-
-
-        # Tab 2: Manage Cashiers
+        # ---------- Tab 2: Manage Cashiers ----------
         with tab2:
             res = supabase.table("cashiers").select("id, username, full_name, active").order("id").execute()
             cashiers_df = pd.DataFrame(res.data) if res.data else pd.DataFrame()
@@ -343,7 +337,11 @@ if "success_message" in st.session_state:
                 st.info("No cashiers found.")
             else:
                 st.dataframe(cashiers_df, use_container_width=True)
-                cashier_to_update = st.selectbox("Select cashier to activate/deactivate", cashiers_df["username"].tolist(), key="manage_cashier")
+                cashier_to_update = st.selectbox(
+                    "Select cashier to activate/deactivate",
+                    cashiers_df["username"].tolist(),
+                    key="manage_cashier"
+                )
                 action = st.radio("Action", ["Deactivate", "Activate"], horizontal=True, key="manage_action")
 
                 if st.button("Update Status", key="update_cashier_btn"):
@@ -351,6 +349,7 @@ if "success_message" in st.session_state:
                     supabase.table("cashiers").update({"active": new_status}).eq("username", cashier_to_update).execute()
                     st.success(f"✅ Cashier '{cashier_to_update}' status updated to {action}")
                     st.rerun()
+
 
 # -----------------------------
 # Logout
