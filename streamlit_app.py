@@ -296,9 +296,9 @@ elif menu == "Cashier Management":
                     st.session_state.pop(k, None)
                 st.session_state._clear_cashier = False
         
-            new_username = st.text_input("New Cashier Username *", key="new_cashier_username")
-            new_password = st.text_input("New Cashier Password *", type="password", key="new_cashier_password")
-            full_name = st.text_input("Full Name", key="new_cashier_fullname")
+                new_username = st.text_input("New Cashier Username *", key="new_cashier_username")
+                new_password = st.text_input("New Cashier Password *", type="password", key="new_cashier_password")
+                full_name = st.text_input("Full Name", key="new_cashier_fullname")
         
             if st.button("Save Cashier", type="primary", key="save_cashier_btn"):
                 if new_username and new_password:
