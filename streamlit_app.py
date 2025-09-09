@@ -288,68 +288,81 @@ elif menu == "Cashier Management":
     else:
         st.subheader("👥 Cashier Management")
 
-        tab1, tab2 = st.tabs(["➕ Add Cashier", "📋 View / Manage Cashiers"])
+       tab1, tab2 = st.tabs(["➕ Add Cashier", "📋 Cashier List"])
 
-        # ---------- Tab 1: Add Cashier ----------
-        with tab1:
-            # ✅ Clear cashier form inputs if flagged
-            if st.session_state.get("_clear_cashier"):
-                for k in ["new_cashier_username", "new_cashier_password", "new_cashier_fullname"]:
-                    st.session_state.pop(k, None)
-                st.session_state._clear_cashier = False
+with tab1:
+    st.subheader("➕ Add New Cashier")
 
-            # 🔑 Cashier form inputs
-            new_username = st.text_input("New Cashier Username *", key="new_cashier_username")
-            new_password = st.text_input("New Cashier Password *", type="password", key="new_cashier_password")
-            full_name = st.text_input("Full Name", key="new_cashier_fullname")
+    # ✅ Show success message if present
+    if st.session_state.get("cashier_success"):
+        st.success(st.session_state.cashier_success)
+        st.session_state.cashier_success = None  # clear after showing once
 
-            if st.button("Save Cashier", type="primary", key="save_cashier_btn"):
-                if new_username and new_password:
-                    hashed_pw = hash_password(new_password)
-                    try:
-                        supabase.table("cashiers").insert({
-                            "username": new_username.strip(),
-                            "password": hashed_pw,
-                            "full_name": full_name.strip() if full_name else None,
-                            "active": True
-                        }).execute()
+    # ✅ Check if we should reset defaults
+    if st.session_state.get("reset_cashier", False):
+        default_username = ""
+        default_password = ""
+        default_fullname = ""
+        st.session_state.reset_cashier = False
+    else:
+        default_username = st.session_state.get("new_cashier_username", "")
+        default_password = st.session_state.get("new_cashier_password", "")
+        default_fullname = st.session_state.get("new_cashier_fullname", "")
 
-                        # ✅ Save success message for next run
-                        st.session_state.success_message = f"✅ Cashier '{new_username}' added successfully!"
-                        st.session_state._clear_cashier = True
-                        st.rerun()
+    # Inputs with defaults
+    new_username = st.text_input("New Cashier Username *", value=default_username, key="new_cashier_username")
+    new_password = st.text_input("New Cashier Password *", type="password", value=default_password, key="new_cashier_password")
+    full_name = st.text_input("Full Name", value=default_fullname, key="new_cashier_fullname")
 
-                    except Exception as e:
-                        st.error(f"⚠️ Error adding cashier: {e}")
-                else:
-                    st.warning("Please fill in username and password.")
+    if st.button("💾 Save Cashier", type="primary", key="save_cashier_btn"):
+        if new_username and new_password:
+            hashed_pw = hash_password(new_password)
+            try:
+                supabase.table("cashiers").insert({
+                    "username": new_username.strip(),
+                    "password": hashed_pw,
+                    "full_name": full_name.strip() if full_name else None,
+                    "active": True
+                }).execute()
 
-            # ✅ Show success message after rerun
-            if st.session_state.get("success_message"):
-                st.success(st.session_state.success_message)
-                st.session_state.success_message = None
+                # ✅ Save success message in session_state
+                st.session_state.cashier_success = f"✅ Cashier '{new_username}' added successfully!"
 
-        # ---------- Tab 2: Manage Cashiers ----------
-        with tab2:
-            res = supabase.table("cashiers").select("id, username, full_name, active").order("id").execute()
-            cashiers_df = pd.DataFrame(res.data) if res.data else pd.DataFrame()
+                # ✅ Clear next render
+                st.session_state.reset_cashier = True
+                st.rerun()
 
-            if cashiers_df.empty:
-                st.info("No cashiers found.")
-            else:
-                st.dataframe(cashiers_df, use_container_width=True)
-                cashier_to_update = st.selectbox(
-                    "Select cashier to activate/deactivate",
-                    cashiers_df["username"].tolist(),
-                    key="manage_cashier"
-                )
-                action = st.radio("Action", ["Deactivate", "Activate"], horizontal=True, key="manage_action")
+            except Exception as e:
+                st.error(f"⚠️ Error adding cashier: {e}")
+        else:
+            st.warning("Please fill in username and password.")
 
-                if st.button("Update Status", key="update_cashier_btn"):
-                    new_status = True if action == "Activate" else False
-                    supabase.table("cashiers").update({"active": new_status}).eq("username", cashier_to_update).execute()
-                    st.success(f"✅ Cashier '{cashier_to_update}' status updated to {action}")
-                    st.rerun()
+with tab2:
+    st.subheader("📋 Cashier List")
+
+    try:
+        cashiers = supabase.table("cashiers").select("*").execute().data
+        if cashiers:
+            for cashier in cashiers:
+                col1, col2, col3, col4 = st.columns([2, 2, 2, 1])
+                with col1:
+                    st.write(f"👤 **{cashier['username']}**")
+                with col2:
+                    st.write(cashier.get("full_name", "-"))
+                with col3:
+                    st.write("✅ Active" if cashier.get("active", True) else "❌ Inactive")
+                with col4:
+                    if st.button("🗑️ Delete", key=f"delete_{cashier['id']}"):
+                        try:
+                            supabase.table("cashiers").delete().eq("id", cashier["id"]).execute()
+                            st.success(f"Cashier '{cashier['username']}' deleted!")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"Error deleting cashier: {e}")
+        else:
+            st.info("No cashiers found.")
+    except Exception as e:
+        st.error(f"⚠️ Error fetching cashiers: {e}")
 
 
 
