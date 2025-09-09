@@ -290,37 +290,37 @@ elif menu == "Cashier Management":
 
         # Tab 1: Add Cashier
        with tab1:
-    # ✅ Clear cashier form inputs if flagged
-    if st.session_state.get("_clear_cashier"):
-        for k in ["new_cashier_username", "new_cashier_password", "new_cashier_fullname"]:
-            st.session_state.pop(k, None)
-        st.session_state._clear_cashier = False
+            # ✅ Clear cashier form inputs if flagged
+            if st.session_state.get("_clear_cashier"):
+                for k in ["new_cashier_username", "new_cashier_password", "new_cashier_fullname"]:
+                    st.session_state.pop(k, None)
+                st.session_state._clear_cashier = False
+        
+            # 🔑 Always render inputs
+            new_username = st.text_input("New Cashier Username *", key="new_cashier_username")
+            new_password = st.text_input("New Cashier Password *", type="password", key="new_cashier_password")
+            full_name = st.text_input("Full Name", key="new_cashier_fullname")
 
-    # 🔑 Always render inputs
-    new_username = st.text_input("New Cashier Username *", key="new_cashier_username")
-    new_password = st.text_input("New Cashier Password *", type="password", key="new_cashier_password")
-    full_name = st.text_input("Full Name", key="new_cashier_fullname")
-
-    if st.button("Save Cashier", type="primary", key="save_cashier_btn"):
-        if new_username and new_password:
-            hashed_pw = hash_password(new_password)
-            try:
-                supabase.table("cashiers").insert({
-                    "username": new_username.strip(),
-                    "password": hashed_pw,
-                    "full_name": full_name.strip() if full_name else None,
-                    "active": True
-                }).execute()
-
-                # ✅ Save success message for next run
-                st.session_state.success_message = f"✅ Cashier '{new_username}' added successfully!"
-                st.session_state._clear_cashier = True
-                st.rerun()
-
-            except Exception as e:
-                st.error(f"⚠️ Error adding cashier: {e}")
-        else:
-            st.warning("Please fill in username and password.")
+            if st.button("Save Cashier", type="primary", key="save_cashier_btn"):
+                if new_username and new_password:
+                    hashed_pw = hash_password(new_password)
+                    try:
+                        supabase.table("cashiers").insert({
+                            "username": new_username.strip(),
+                            "password": hashed_pw,
+                            "full_name": full_name.strip() if full_name else None,
+                            "active": True
+                        }).execute()
+        
+                        # ✅ Save success message for next run
+                        st.session_state.success_message = f"✅ Cashier '{new_username}' added successfully!"
+                        st.session_state._clear_cashier = True
+                        st.rerun()
+        
+                    except Exception as e:
+                        st.error(f"⚠️ Error adding cashier: {e}")
+                else:
+                    st.warning("Please fill in username and password.")
 
 # ✅ Show success message after rerun
 if st.session_state.get("success_message"):
