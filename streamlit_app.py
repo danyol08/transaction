@@ -11,7 +11,7 @@ from streamlit_option_menu import option_menu
 # Config
 # -----------------------------
 st.set_page_config(page_title="Salon Transaction System", layout="wide")
-st.title("💅 Salon Transaction Management System")
+st.title("Salon Transaction Management System")
 
 # --- Hide Streamlit Branding, GitHub, Fork, Menu, Footer, Logo ---
 hide_st_style = """
