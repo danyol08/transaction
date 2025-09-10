@@ -133,8 +133,19 @@ if "logged_in" not in st.session_state:
 # -----------------------------
 # Login
 # -----------------------------
+# -----------------------------
+# Login
+# -----------------------------
+def login_user(username: str, password: str):
+    hpw = hash_password(password)
+    res = supabase.table("cashiers").select("id,username,role,active") \
+        .eq("username", username).eq("password", hpw).eq("active", True).execute()
+    if res.data:
+        return res.data[0]  # return user dict
+    return None
+
 if not st.session_state.logged_in:
-    st.subheader("🔑 Cashier Login")
+    st.subheader("🔑 Login")
     col1, col2 = st.columns([1, 1])
     with col1:
         username = st.text_input("Username", key="login_username")
@@ -142,14 +153,37 @@ if not st.session_state.logged_in:
         password = st.text_input("Password", type="password", key="login_password")
 
     if st.button("Login", use_container_width=True, key="login_btn"):
-        if login_user(username, password):
+        user = login_user(username, password)
+        if user:
             st.session_state.logged_in = True
-            st.session_state.cashier = username
-            st.success(f"Welcome, {username}!")
+            st.session_state.cashier = user["username"]
+            st.session_state.role = user.get("role", "cashier")
+            st.success(f"Welcome, {st.session_state.cashier} ({st.session_state.role})!")
             st.rerun()
         else:
             st.error("Invalid username/password or inactive account.")
     st.stop()
+
+# -----------------------------
+# Sidebar Menu
+# -----------------------------
+with st.sidebar:
+    st.success(f"Logged in as: {st.session_state.cashier} ({st.session_state.role})")
+    base_menu = ["Add Transaction", "View Transactions", "Search Customer", "Reports & CSV", "Logout"]
+    base_icons = ["plus", "table", "search", "file-earmark-text", "box-arrow-right"]
+
+    if st.session_state.role == "admin":
+        base_menu.insert(-1, "Cashier Management")
+        base_icons.insert(-1, "people")
+
+    menu = option_menu(
+        "📋 Menu",
+        base_menu,
+        icons=base_icons,
+        menu_icon="list",
+        default_index=0,
+    )
+
 
 # -----------------------------
 # Sidebar Menu
