@@ -334,6 +334,46 @@ elif menu == "Reports & CSV":
         csv_all = df.to_csv(index=False).encode("utf-8")
         st.download_button("⬇️ Download ALL Transactions (CSV)", csv_all, "transactions_full.csv", "text/csv")
 
+        # -----------------------------
+        # 📅 Daily Report with Totals
+        # -----------------------------
+        st.markdown("### 📥 Download Daily Report")
+        selected_date = st.date_input("📅 Select Date", date.today())
+        daily_df = df[df["date_of_service"] == str(selected_date)]
+
+        if daily_df.empty:
+            st.warning(f"❌ No transactions found for {selected_date}.")
+        else:
+            # Compute total sales
+            total_sales = daily_df["amount"].sum()
+
+            # Add TOTAL row to export
+            total_row = pd.DataFrame([{
+                "customer_name": "TOTAL",
+                "service": "",
+                "technician_name": "",
+                "technician_type": "",
+                "addons": "",
+                "date_of_service": "",
+                "amount": total_sales,
+                "cashier_username": "",
+                "created_at": ""
+            }])
+            export_df = pd.concat([daily_df, total_row], ignore_index=True)
+
+            # Show summary in UI
+            st.success(f"💰 Total Sales on {selected_date}: ₱{total_sales:,.2f}")
+            st.info(f"🧾 Transactions Count: {len(daily_df)}")
+
+            # Download button
+            csv_daily = export_df.to_csv(index=False).encode("utf-8")
+            st.download_button(
+                label="⬇️ Download DAILY Transactions (CSV)",
+                data=csv_daily,
+                file_name=f"transactions_{selected_date}.csv",
+                mime="text/csv"
+            )
+
 # -----------------------------
 # Cashier Management
 # -----------------------------
