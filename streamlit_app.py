@@ -52,25 +52,6 @@ div.stButton > button:hover {
     font-size: 0.9rem;
 }
 
-/* ✅ Option Menu Styles (fix disappearing issue) */
-.nav.nav-pills {
-    padding: 0 !important;
-}
-.nav-pills .nav-link {
-    padding: 10px 14px !important;
-    border-radius: 8px !important;
-    font-size: 1rem !important;
-    color: black !important;
-}
-.nav-pills .nav-link:hover {
-    background-color: #ffe4ec !important;
-}
-.nav-pills .nav-link.active {
-    background-color: #ffb6c1 !important;
-    color: black !important;
-    font-weight: bold !important;
-}
-
 /* Tablet responsiveness */
 @media (max-width: 1024px) {
     .block-container {
@@ -83,14 +64,11 @@ div.stButton > button:hover {
     div.stButton > button {
         width: 100% !important;
     }
-    .nav-pills .nav-link {
-        font-size: 1.05rem !important;
-        text-align: center !important;
-    }
 }
 </style>
 """
 st.markdown(responsive_style, unsafe_allow_html=True)
+
 
 
 
