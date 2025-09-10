@@ -276,23 +276,16 @@ elif menu == "Cashier Management":
                 st.session_state.cashier_success = None
 
             if st.session_state.get("reset_cashier", False):
-                default_username = ""
-                default_password = ""
-                default_fullname = ""
-                st.session_state.pop("new_cashier_username", None)
-                st.session_state.pop("new_cashier_password", None)
-                st.session_state.pop("new_cashier_confirm", None)
-                st.session_state.pop("new_cashier_fullname", None)
+                st.session_state.new_cashier_username = ""
+                st.session_state.new_cashier_password = ""
+                st.session_state.new_cashier_confirm = ""
+                st.session_state.new_cashier_fullname = ""
                 st.session_state.reset_cashier = False
-            else:
-                default_username = st.session_state.get("new_cashier_username", "")
-                default_password = st.session_state.get("new_cashier_password", "")
-                default_fullname = st.session_state.get("new_cashier_fullname", "")
 
-            new_username = st.text_input("New Cashier Username *", value=default_username, key="new_cashier_username")
-            new_password = st.text_input("New Cashier Password *", type="password", value=default_password, key="new_cashier_password")
+            new_username = st.text_input("New Cashier Username *", key="new_cashier_username")
+            new_password = st.text_input("New Cashier Password *", type="password", key="new_cashier_password")
             confirm_password = st.text_input("Confirm Password *", type="password", key="new_cashier_confirm")
-            full_name = st.text_input("Full Name", value=default_fullname, key="new_cashier_fullname")
+            full_name = st.text_input("Full Name", key="new_cashier_fullname")
 
             if st.button("💾 Save Cashier", type="primary", key="save_cashier_btn"):
                 if not new_username or not new_password or not confirm_password:
@@ -329,6 +322,13 @@ elif menu == "Cashier Management":
                         st.session_state.pass_success = None
 
                     selected_user = st.selectbox("Select cashier to change password:", [c["username"] for c in cashiers])
+
+                    # Default values for password reset
+                    if "reset_pass_input" not in st.session_state:
+                        st.session_state.reset_pass_input = ""
+                    if "reset_pass_confirm" not in st.session_state:
+                        st.session_state.reset_pass_confirm = ""
+
                     new_pass = st.text_input("Enter new password", type="password", key="reset_pass_input")
                     confirm_pass = st.text_input("Confirm new password", type="password", key="reset_pass_confirm")
 
@@ -345,8 +345,11 @@ elif menu == "Cashier Management":
                                 }).eq("username", selected_user).execute()
 
                                 st.session_state.pass_success = f"✅ Password for cashier '{selected_user}' has been updated!"
-                                st.session_state.pop("reset_pass_input", None)
-                                st.session_state.pop("reset_pass_confirm", None)
+
+                                # ✅ Clear inputs
+                                st.session_state.reset_pass_input = ""
+                                st.session_state.reset_pass_confirm = ""
+
                                 st.rerun()
                             except Exception as e:
                                 st.error(f"⚠️ Error updating password: {e}")
@@ -354,6 +357,7 @@ elif menu == "Cashier Management":
                     st.info("No cashiers found.")
             except Exception as e:
                 st.error(f"⚠️ Error fetching cashiers: {e}")
+
 
 # -----------------------------
 # Logout
