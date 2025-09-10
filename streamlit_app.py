@@ -259,9 +259,6 @@ elif menu == "Reports & CSV":
 # -----------------------------
 # Cashier Management
 # -----------------------------
-# -----------------------------
-# Cashier Management
-# -----------------------------
 elif menu == "Cashier Management":
     if st.session_state.cashier != "admin":
         st.error("❌ Only admin can manage cashiers.")
@@ -269,7 +266,7 @@ elif menu == "Cashier Management":
         st.subheader("👥 Cashier Management")
 
         # -----------------------------
-        # Helper: Activity Logging
+        # Activity Logger
         # -----------------------------
         def log_activity(username: str, action: str, details: str = ""):
             try:
@@ -281,7 +278,7 @@ elif menu == "Cashier Management":
             except Exception as e:
                 st.error(f"⚠️ Failed to log activity: {e}")
 
-        tab1, tab2, tab3 = st.tabs(["➕ Add Cashier", "📋 Cashier List", "📝 Activity Logs"])
+        tab1, tab2, tab3 = st.tabs(["➕ Add Cashier", "📋 Manage Cashiers", "📝 Activity Logs"])
 
         # TAB 1: Add Cashier
         with tab1:
@@ -291,67 +288,97 @@ elif menu == "Cashier Management":
                 st.success(st.session_state.cashier_success)
                 st.session_state.cashier_success = None
 
-            if st.session_state.get("reset_cashier", False):
-                default_username = ""
-                default_password = ""
-                default_fullname = ""
-                st.session_state.reset_cashier = False
-            else:
-                default_username = st.session_state.get("new_cashier_username", "")
-                default_password = st.session_state.get("new_cashier_password", "")
-                default_fullname = st.session_state.get("new_cashier_fullname", "")
+            # ✅ Clear form if flagged
+            if st.session_state.get("clear_cashier_form"):
+                st.session_state.new_cashier_username = ""
+                st.session_state.new_cashier_password = ""
+                st.session_state.new_cashier_confirm = ""
+                st.session_state.new_cashier_fullname = ""
+                st.session_state.clear_cashier_form = False
 
-            new_username = st.text_input("New Cashier Username *", value=default_username, key="new_cashier_username")
-            new_password = st.text_input("New Cashier Password *", type="password", value=default_password, key="new_cashier_password")
-            confirm_password = st.text_input("Confirm Password *", type="password", key="confirm_password")
-            full_name = st.text_input("Full Name", value=default_fullname, key="new_cashier_fullname")
+            new_username = st.text_input("👤 Username *", key="new_cashier_username", placeholder="e.g. cashier1")
+            new_password = st.text_input("🔑 Password *", type="password", key="new_cashier_password")
+            confirm_password = st.text_input("🔑 Confirm Password *", type="password", key="new_cashier_confirm")
+            full_name = st.text_input("📝 Full Name", key="new_cashier_fullname", placeholder="Optional")
 
-            if st.button("💾 Save Cashier", type="primary", key="save_cashier_btn"):
-                if new_username and new_password and confirm_password:
-                    if new_password != confirm_password:
-                        st.warning("⚠️ Passwords do not match.")
-                    else:
-                        hashed_pw = hash_password(new_password)
-                        try:
-                            supabase.table("cashiers").insert({
-                                "username": new_username.strip(),
-                                "password": hashed_pw,
-                                "full_name": full_name.strip() if full_name else None,
-                                "active": True
-                            }).execute()
-
-                            log_activity(st.session_state.cashier, "Add Cashier", f"New cashier: {new_username}")
-
-                            st.session_state.cashier_success = f"✅ Cashier '{new_username}' added successfully!"
-                            st.session_state.reset_cashier = True
-                            st.rerun()
-                        except Exception as e:
-                            st.error(f"⚠️ Error adding cashier: {e}")
+            if st.button("💾 Save Cashier", type="primary", use_container_width=True):
+                if not new_username or not new_password or not confirm_password:
+                    st.warning("⚠️ Please fill in all required fields.")
+                elif new_password != confirm_password:
+                    st.error("❌ Passwords do not match.")
                 else:
-                    st.warning("Please fill in all required fields.")
+                    hashed_pw = hash_password(new_password)
+                    try:
+                        supabase.table("cashiers").insert({
+                            "username": new_username.strip(),
+                            "password": hashed_pw,
+                            "full_name": full_name.strip() if full_name else None,
+                            "active": True
+                        }).execute()
 
-        # TAB 2: Cashier List
+                        log_activity(st.session_state.cashier, "Add Cashier", f"Added '{new_username}'")
+
+                        st.session_state.cashier_success = f"✅ Cashier '{new_username}' added successfully!"
+                        st.session_state.clear_cashier_form = True
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"⚠️ Error adding cashier: {e}")
+
+        # TAB 2: Manage Cashiers
         with tab2:
-            st.subheader("📋 Cashier List")
+            st.subheader("📋 Cashier List & Actions")
             try:
                 cashiers = supabase.table("cashiers").select("id, username, full_name, active").execute().data
                 if cashiers:
                     df = pd.DataFrame(cashiers)
-                    st.dataframe(df, use_container_width=True)
+                    df["Status"] = df["active"].apply(lambda x: "🟢 Active" if x else "🔴 Inactive")
+                    st.dataframe(df[["username", "full_name", "Status"]], use_container_width=True)
+
+                    st.markdown("---")
+                    st.subheader("⚙️ Manage Selected Cashier")
+
+                    selected_user = st.selectbox("Select cashier:", [c["username"] for c in cashiers])
+
+                    # Toggle status
+                    current_status = next((c["active"] for c in cashiers if c["username"] == selected_user), True)
+                    toggle_status = st.radio("Status", ["Active", "Inactive"],
+                                             index=0 if current_status else 1,
+                                             horizontal=True)
+
+                    if st.button("🔄 Update Status", use_container_width=True):
+                        try:
+                            supabase.table("cashiers").update({
+                                "active": (toggle_status == "Active")
+                            }).eq("username", selected_user).execute()
+
+                            log_activity(st.session_state.cashier, "Update Status", f"{selected_user} → {toggle_status}")
+
+                            st.success(f"✅ Cashier '{selected_user}' status updated to {toggle_status}.")
+                            st.rerun()
+                        except Exception as e:
+                            st.error(f"⚠️ Error updating status: {e}")
+
+                    st.markdown("---")
+                    st.subheader("🔑 Reset Password")
 
                     if st.session_state.get("pass_success"):
                         st.success(st.session_state.pass_success)
                         st.session_state.pass_success = None
 
-                    selected_user = st.selectbox("Select cashier to change password:", [c["username"] for c in cashiers])
-                    new_pass = st.text_input("Enter new password", type="password", key="reset_pass_input")
-                    confirm_new_pass = st.text_input("Confirm new password", type="password", key="confirm_reset_pass")
+                    # ✅ Clear password form if flagged
+                    if st.session_state.get("clear_pass_form"):
+                        st.session_state.reset_pass_input = ""
+                        st.session_state.reset_pass_confirm = ""
+                        st.session_state.clear_pass_form = False
 
-                    if st.button("🔑 Update Password", type="primary", key="reset_pass_btn"):
-                        if not new_pass or not confirm_new_pass:
+                    new_pass = st.text_input("Enter new password", type="password", key="reset_pass_input")
+                    confirm_pass = st.text_input("Confirm new password", type="password", key="reset_pass_confirm")
+
+                    if st.button("💾 Save New Password", type="primary", use_container_width=True):
+                        if not new_pass or not confirm_pass:
                             st.warning("⚠️ Please enter and confirm the new password.")
-                        elif new_pass != confirm_new_pass:
-                            st.warning("⚠️ Passwords do not match.")
+                        elif new_pass != confirm_pass:
+                            st.error("❌ Passwords do not match.")
                         else:
                             try:
                                 hashed_pw = hash_password(new_pass)
@@ -359,15 +386,15 @@ elif menu == "Cashier Management":
                                     "password": hashed_pw
                                 }).eq("username", selected_user).execute()
 
-                                log_activity(st.session_state.cashier, "Update Password", f"Password changed for {selected_user}")
+                                log_activity(st.session_state.cashier, "Reset Password", f"Password updated for {selected_user}")
 
-                                st.session_state.pass_success = f"✅ Password for cashier '{selected_user}' has been updated!"
-                                st.session_state.reset_txn = True  # similar reset logic
+                                st.session_state.pass_success = f"✅ Password for '{selected_user}' has been updated!"
+                                st.session_state.clear_pass_form = True
                                 st.rerun()
                             except Exception as e:
                                 st.error(f"⚠️ Error updating password: {e}")
                 else:
-                    st.info("No cashiers found.")
+                    st.info("ℹ️ No cashiers found.")
             except Exception as e:
                 st.error(f"⚠️ Error fetching cashiers: {e}")
 
@@ -379,11 +406,13 @@ elif menu == "Cashier Management":
                 if logs:
                     df_logs = pd.DataFrame(logs)
                     df_logs["created_at"] = pd.to_datetime(df_logs["created_at"]).dt.strftime("%Y-%m-%d %I:%M %p")
-                    st.dataframe(df_logs, use_container_width=True, height=400)
+                    st.dataframe(df_logs[["cashier_username", "action", "details", "created_at"]],
+                                 use_container_width=True, height=400)
                 else:
-                    st.info("No activity logs yet.")
+                    st.info("ℹ️ No activity logs yet.")
             except Exception as e:
                 st.error(f"⚠️ Error fetching logs: {e}")
+
 
 
 
