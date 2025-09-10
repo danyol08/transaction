@@ -196,9 +196,23 @@ elif menu == "View Transactions":
     if df.empty:
         st.info("No transactions yet.")
     else:
-        # ✅ Format created_at to show TIME only
+        # ✅ Convert created_at to Philippine Time (UTC+8) and show TIME only
         if "created_at" in df.columns:
-            df["created_at"] = pd.to_datetime(df["created_at"], errors="coerce").dt.strftime("%H:%M:%S")
+            df["created_at"] = pd.to_datetime(df["created_at"], errors="coerce", utc=True)
+            df["created_at"] = df["created_at"].dt.tz_convert("Asia/Manila")
+            df["created_at_time"] = df["created_at"].dt.strftime("%H:%M:%S")
+
+        # ✅ Format date_of_service for readability
+        if "date_of_service" in df.columns:
+            df["date_of_service"] = pd.to_datetime(df["date_of_service"], errors="coerce").dt.strftime("%b %d, %Y")
+
+        # ✅ Sort by created_at (latest first)
+        if "created_at" in df.columns:
+            df = df.sort_values(by="created_at", ascending=False)
+
+        # ✅ Drop original created_at, keep only formatted time
+        if "created_at_time" in df.columns:
+            df = df.drop(columns=["created_at"]).rename(columns={"created_at_time": "Time"})
 
         st.dataframe(df, use_container_width=True, height=460)
         st.caption("Tip: Use the ‘Reports & CSV’ tab to filter by date/cashier and download CSV.")
