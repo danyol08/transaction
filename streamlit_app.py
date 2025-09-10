@@ -263,11 +263,36 @@ elif menu == "Search Customer":
         name_query = st.text_input("Enter customer name (full or partial):")
         if name_query:
             results = df[df["customer_name"].str.contains(name_query, case=False, na=False)]
+
             if results.empty:
                 st.warning("No records found.")
             else:
+                # ✅ Convert created_at → Philippine Time (UTC+8)
+                if "created_at" in results.columns:
+                    results["created_at"] = pd.to_datetime(results["created_at"], errors="coerce", utc=True)
+                    results["created_at"] = results["created_at"].dt.tz_convert("Asia/Manila")
+                    results["created_at_time"] = results["created_at"].dt.strftime("%H:%M:%S")
+
+                # ✅ Format date_of_service
+                if "date_of_service" in results.columns:
+                    results["date_of_service"] = pd.to_datetime(
+                        results["date_of_service"], errors="coerce"
+                    ).dt.strftime("%b %d, %Y")
+
+                # ✅ Drop raw created_at, keep formatted time
+                drop_cols = [c for c in ["id", "created_at"] if c in results.columns]
+                results = results.drop(columns=drop_cols)
+                if "created_at_time" in results.columns:
+                    results = results.rename(columns={"created_at_time": "Time"})
+
+                # ✅ Reorder: date_of_service beside Time
+                if "date_of_service" in results.columns and "Time" in results.columns:
+                    cols = ["date_of_service", "Time"] + [c for c in results.columns if c not in ["date_of_service", "Time"]]
+                    results = results[cols]
+
                 st.write(f"Found **{len(results)}** record(s):")
                 st.dataframe(results, use_container_width=True, height=420)
+
                 total_spent = results["amount"].sum()
                 st.success(f"💰 Total spent: ₱{total_spent:,.2f}")
 
