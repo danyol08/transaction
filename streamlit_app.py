@@ -275,13 +275,13 @@ elif menu == "Cashier Management":
                 st.success(st.session_state.cashier_success)
                 st.session_state.cashier_success = None
 
-            # ✅ Reset form after successful add
-            if st.session_state.get("reset_cashier", False):
-                st.session_state.pop("new_cashier_username", None)
-                st.session_state.pop("new_cashier_password", None)
-                st.session_state.pop("new_cashier_confirm", None)
-                st.session_state.pop("new_cashier_fullname", None)
-                st.session_state.reset_cashier = False
+            # ✅ Clear form if flagged
+            if st.session_state.get("clear_cashier_form"):
+                st.session_state.new_cashier_username = ""
+                st.session_state.new_cashier_password = ""
+                st.session_state.new_cashier_confirm = ""
+                st.session_state.new_cashier_fullname = ""
+                st.session_state.clear_cashier_form = False
 
             new_username = st.text_input("New Cashier Username *", key="new_cashier_username")
             new_password = st.text_input("New Cashier Password *", type="password", key="new_cashier_password")
@@ -304,8 +304,8 @@ elif menu == "Cashier Management":
                         }).execute()
 
                         st.session_state.cashier_success = f"✅ Cashier '{new_username}' added successfully!"
-                        st.session_state.reset_cashier = True
-                        st.rerun()  # 🔁 rerun to clear fields
+                        st.session_state.clear_cashier_form = True  # 🔁 trigger clearing
+                        st.rerun()
                     except Exception as e:
                         st.error(f"⚠️ Error adding cashier: {e}")
 
@@ -322,11 +322,11 @@ elif menu == "Cashier Management":
                         st.success(st.session_state.pass_success)
                         st.session_state.pass_success = None
 
-                    # ✅ Reset password fields after success
-                    if st.session_state.get("reset_password", False):
-                        st.session_state.pop("reset_pass_input", None)
-                        st.session_state.pop("reset_pass_confirm", None)
-                        st.session_state.reset_password = False
+                    # ✅ Clear password form if flagged
+                    if st.session_state.get("clear_pass_form"):
+                        st.session_state.reset_pass_input = ""
+                        st.session_state.reset_pass_confirm = ""
+                        st.session_state.clear_pass_form = False
 
                     selected_user = st.selectbox("Select cashier to change password:", [c["username"] for c in cashiers])
                     new_pass = st.text_input("Enter new password", type="password", key="reset_pass_input")
@@ -345,16 +345,14 @@ elif menu == "Cashier Management":
                                 }).eq("username", selected_user).execute()
 
                                 st.session_state.pass_success = f"✅ Password for cashier '{selected_user}' has been updated!"
-                                st.session_state.reset_password = True
-                                st.rerun()  # 🔁 rerun to clear fields
+                                st.session_state.clear_pass_form = True  # 🔁 trigger clearing
+                                st.rerun()
                             except Exception as e:
                                 st.error(f"⚠️ Error updating password: {e}")
                 else:
                     st.info("No cashiers found.")
             except Exception as e:
                 st.error(f"⚠️ Error fetching cashiers: {e}")
-
-
 
 # -----------------------------
 # Logout
