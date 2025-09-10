@@ -24,6 +24,7 @@ hide_st_style = """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
 # --- Extra Responsive & User-Friendly Styles ---
+# --- Extra Responsive & User-Friendly Styles ---
 responsive_style = """
 <style>
 /* General UI inputs */
@@ -52,6 +53,20 @@ div.stButton > button:hover {
     font-size: 0.9rem;
 }
 
+/* Sidebar menu adjustments */
+[data-testid="stSidebar"] {
+    width: 280px !important; /* slightly wider */
+    font-size: 1rem !important;
+}
+[data-testid="stSidebar"] ul li {
+    padding: 8px 12px !important;
+    border-radius: 8px !important;
+}
+[data-testid="stSidebar"] ul li:hover {
+    background-color: #ffe4ec !important;
+    cursor: pointer;
+}
+
 /* Tablet responsiveness */
 @media (max-width: 1024px) {
     .block-container {
@@ -64,10 +79,15 @@ div.stButton > button:hover {
     div.stButton > button {
         width: 100% !important;
     }
+    [data-testid="stSidebar"] {
+        width: 100% !important; /* full width on tablets */
+        font-size: 0.95rem !important;
+    }
 }
 </style>
 """
 st.markdown(responsive_style, unsafe_allow_html=True)
+
 
 # -----------------------------
 # Supabase Config
