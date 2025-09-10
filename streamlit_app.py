@@ -204,29 +204,52 @@ elif menu == "View Transactions":
 
         # ✅ Format date_of_service for readability
         if "date_of_service" in df.columns:
-            df["date_of_service"] = pd.to_datetime(
-                df["date_of_service"], errors="coerce"
-            ).dt.strftime("%b %d, %Y")
+            df["date_of_service"] = pd.to_datetime(df["date_of_service"], errors="coerce").dt.strftime("%b %d, %Y")
 
         # ✅ Sort by created_at (latest first)
         if "created_at" in df.columns:
             df = df.sort_values(by="created_at", ascending=False)
 
-        # ✅ Drop unwanted columns (id + raw created_at)
+        # ✅ Drop unwanted columns (id + raw created_at), keep Time
         drop_cols = [c for c in ["id", "created_at"] if c in df.columns]
         df = df.drop(columns=drop_cols)
 
-        # ✅ Rename time column
+        # ✅ Rename time column and move beside date_of_service
         if "created_at_time" in df.columns:
             df = df.rename(columns={"created_at_time": "Time"})
+            if "date_of_service" in df.columns:
+                cols = [c for c in df.columns if c not in ["date_of_service", "Time"]]
+                df = df[["date_of_service", "Time"] + cols]
 
-        # ✅ Reorder so Date of Service & Time are beside each other
-        if "date_of_service" in df.columns and "Time" in df.columns:
-            cols = ["date_of_service", "Time"] + [c for c in df.columns if c not in ["date_of_service", "Time"]]
-            df = df[cols]
-
+        # Show table
         st.dataframe(df, use_container_width=True, height=460)
-        st.caption("Tip: Use the ‘Reports & CSV’ tab to filter by date/cashier and download CSV.")
+
+        # -----------------------------
+        # 📥 Download Daily Report
+        # -----------------------------
+        st.markdown("---")
+        st.subheader("📥 Download Daily Transaction Report")
+
+        # Date picker
+        report_date = st.date_input("Select a date", value=pd.to_datetime("today").date())
+
+        # Filter by date_of_service
+        daily_df = df[df["date_of_service"] == report_date.strftime("%b %d, %Y")]
+
+        if not daily_df.empty:
+            csv = daily_df.to_csv(index=False).encode("utf-8")
+            st.download_button(
+                label=f"⬇️ Download Report for {report_date.strftime('%b %d, %Y')}",
+                data=csv,
+                file_name=f"transactions_{report_date}.csv",
+                mime="text/csv",
+                use_container_width=True
+            )
+        else:
+            st.info("ℹ️ No transactions for this date.")
+
+        st.caption("Tip: Use this to generate daily cashier or sales reports.")
+
 
 # -----------------------------
 # Search Customer
