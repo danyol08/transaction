@@ -58,7 +58,7 @@ pink_style = """
 st.markdown(pink_style, unsafe_allow_html=True)
 
 # Title with emoji (optional)
-st.title("💅 Transaction Management System")
+st.title("Transaction Management System")
 
 
 # -----------------------------
