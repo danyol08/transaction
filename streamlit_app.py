@@ -11,7 +11,7 @@ from streamlit_option_menu import option_menu
 # -----------------------------
 # Config
 # -----------------------------
-st.set_page_config(page_title="Salon Transaction System", layout="wide")
+st.set_page_config(page_title="Transaction System", layout="wide")
 
 # --- Custom Pink Theme + Logo ---
 pink_style = """
