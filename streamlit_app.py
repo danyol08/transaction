@@ -160,7 +160,7 @@ if menu == "Add Transaction":
             addons = st.text_area("✨ Add-ons (optional)", placeholder="E.g., Nail art, extra lashes")
         with c2:
             technician_name = st.text_input("🧑‍🎨 Technician Name *", placeholder="Enter technician name")
-            technician_type = st.radio("Technician Type *", ["Nails 💅", "Lashes 👁", "Hair ✂️"], horizontal=True)
+            technician_type = st.radio("Technician Type *", ["Nails 💅", "Lashes 👁", "Others"], horizontal=True)
             service_date = st.date_input("📅 Date of Service *", value=date.today())
             amount = st.number_input("💰 Amount (₱) *", min_value=0.0, step=50.0, format="%.2f")
 
