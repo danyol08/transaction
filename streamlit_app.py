@@ -24,7 +24,6 @@ hide_st_style = """
 st.markdown(hide_st_style, unsafe_allow_html=True)
 
 # --- Extra Responsive & User-Friendly Styles ---
-# --- Extra Responsive & User-Friendly Styles ---
 responsive_style = """
 <style>
 /* General UI inputs */
@@ -53,18 +52,26 @@ div.stButton > button:hover {
     font-size: 0.9rem;
 }
 
-/* Sidebar menu adjustments */
+/* Sidebar adjustments for option_menu */
 [data-testid="stSidebar"] {
-    width: 280px !important; /* slightly wider */
-    font-size: 1rem !important;
+    width: 280px !important;
 }
-[data-testid="stSidebar"] ul li {
-    padding: 8px 12px !important;
+.css-1d391kg, .css-1v0mbdj { /* wrapper classes vary by Streamlit version */
+    padding: 0 !important;
+}
+.nav-pills .nav-link {
+    padding: 10px 14px !important;
     border-radius: 8px !important;
+    font-size: 1rem !important;
+    color: black !important;
 }
-[data-testid="stSidebar"] ul li:hover {
+.nav-pills .nav-link:hover {
     background-color: #ffe4ec !important;
-    cursor: pointer;
+}
+.nav-pills .nav-link.active {
+    background-color: #ffb6c1 !important;
+    color: black !important;
+    font-weight: bold !important;
 }
 
 /* Tablet responsiveness */
@@ -80,8 +87,12 @@ div.stButton > button:hover {
         width: 100% !important;
     }
     [data-testid="stSidebar"] {
-        width: 100% !important; /* full width on tablets */
+        width: 100% !important;
         font-size: 0.95rem !important;
+    }
+    .nav-pills .nav-link {
+        font-size: 1rem !important;
+        text-align: center !important;
     }
 }
 </style>
