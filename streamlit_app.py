@@ -11,65 +11,18 @@ from streamlit_option_menu import option_menu
 # Config
 # -----------------------------
 st.set_page_config(page_title="Salon Transaction System", layout="wide")
-st.title("Transaction Management System")
+st.title("💅 Salon Transaction Management System")
 
+# --- Hide Streamlit Branding, GitHub, Fork, and Menu ---
 hide_st_style = """
     <style>
         #MainMenu {visibility: hidden;}
         footer {visibility: hidden;}
         header {visibility: hidden;}
+        [data-testid="stToolbar"] {display: none;}
     </style>
 """
 st.markdown(hide_st_style, unsafe_allow_html=True)
-
-# --- Extra Responsive & User-Friendly Styles ---
-responsive_style = """
-<style>
-/* General UI inputs */
-.stTextInput, .stSelectbox, .stNumberInput, .stDateInput, .stTextArea {
-    border-radius: 12px !important;
-    padding: 6px !important;
-}
-
-/* Buttons */
-div.stButton > button {
-    border-radius: 12px;
-    padding: 0.6rem 1rem;
-    font-weight: bold;
-    transition: all 0.2s ease-in-out;
-}
-div.stButton > button:hover {
-    transform: scale(1.05);
-    background-color: #ffb6c1;
-    color: black;
-}
-
-/* Dataframe tweaks */
-[data-testid="stDataFrame"] {
-    border-radius: 12px;
-    overflow: auto;
-    font-size: 0.9rem;
-}
-
-/* Tablet responsiveness */
-@media (max-width: 1024px) {
-    .block-container {
-        padding-left: 1rem;
-        padding-right: 1rem;
-    }
-    h1, h2, h3 {
-        font-size: 1.2rem !important;
-    }
-    div.stButton > button {
-        width: 100% !important;
-    }
-}
-</style>
-"""
-st.markdown(responsive_style, unsafe_allow_html=True)
-
-
-
 
 # -----------------------------
 # Supabase Config
@@ -133,19 +86,8 @@ if "logged_in" not in st.session_state:
 # -----------------------------
 # Login
 # -----------------------------
-# -----------------------------
-# Login
-# -----------------------------
-def login_user(username: str, password: str):
-    hpw = hash_password(password)
-    res = supabase.table("cashiers").select("id,username,role,active") \
-        .eq("username", username).eq("password", hpw).eq("active", True).execute()
-    if res.data:
-        return res.data[0]  # return user dict
-    return None
-
 if not st.session_state.logged_in:
-    st.subheader("🔑 Login")
+    st.subheader("🔑 Cashier Login")
     col1, col2 = st.columns([1, 1])
     with col1:
         username = st.text_input("Username", key="login_username")
@@ -153,37 +95,14 @@ if not st.session_state.logged_in:
         password = st.text_input("Password", type="password", key="login_password")
 
     if st.button("Login", use_container_width=True, key="login_btn"):
-        user = login_user(username, password)
-        if user:
+        if login_user(username, password):
             st.session_state.logged_in = True
-            st.session_state.cashier = user["username"]
-            st.session_state.role = user.get("role", "cashier")
-            st.success(f"Welcome, {st.session_state.cashier} ({st.session_state.role})!")
+            st.session_state.cashier = username
+            st.success(f"Welcome, {username}!")
             st.rerun()
         else:
             st.error("Invalid username/password or inactive account.")
     st.stop()
-
-# -----------------------------
-# Sidebar Menu
-# -----------------------------
-with st.sidebar:
-    st.success(f"Logged in as: {st.session_state.cashier} ({st.session_state.role})")
-    base_menu = ["Add Transaction", "View Transactions", "Search Customer", "Reports & CSV", "Logout"]
-    base_icons = ["plus", "table", "search", "file-earmark-text", "box-arrow-right"]
-
-    if st.session_state.role == "admin":
-        base_menu.insert(-1, "Cashier Management")
-        base_icons.insert(-1, "people")
-
-    menu = option_menu(
-        "📋 Menu",
-        base_menu,
-        icons=base_icons,
-        menu_icon="list",
-        default_index=0,
-    )
-
 
 # -----------------------------
 # Sidebar Menu
