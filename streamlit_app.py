@@ -210,9 +210,9 @@ elif menu == "View Transactions":
         if "created_at" in df.columns:
             df = df.sort_values(by="created_at", ascending=False)
 
-        # ✅ Hide only the ID column
-        if "id" in df.columns:
-            df = df.drop(columns=["id"])
+        # ✅ Drop unwanted columns (id + raw created_at), keep Time
+        drop_cols = [c for c in ["id", "created_at"] if c in df.columns]
+        df = df.drop(columns=drop_cols)
 
         # ✅ Rename time column and move to first position
         if "created_at_time" in df.columns:
@@ -222,7 +222,6 @@ elif menu == "View Transactions":
 
         st.dataframe(df, use_container_width=True, height=460)
         st.caption("Tip: Use the ‘Reports & CSV’ tab to filter by date/cashier and download CSV.")
-
 
 # -----------------------------
 # Search Customer
