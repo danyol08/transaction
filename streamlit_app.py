@@ -52,11 +52,8 @@ div.stButton > button:hover {
     font-size: 0.9rem;
 }
 
-/* Sidebar adjustments for option_menu */
-[data-testid="stSidebar"] {
-    width: 280px !important;
-}
-.css-1d391kg, .css-1v0mbdj { /* wrapper classes vary by Streamlit version */
+/* ✅ Option Menu Styles (fix disappearing issue) */
+.nav.nav-pills {
     padding: 0 !important;
 }
 .nav-pills .nav-link {
@@ -86,18 +83,15 @@ div.stButton > button:hover {
     div.stButton > button {
         width: 100% !important;
     }
-    [data-testid="stSidebar"] {
-        width: 100% !important;
-        font-size: 0.95rem !important;
-    }
     .nav-pills .nav-link {
-        font-size: 1rem !important;
+        font-size: 1.05rem !important;
         text-align: center !important;
     }
 }
 </style>
 """
 st.markdown(responsive_style, unsafe_allow_html=True)
+
 
 
 # -----------------------------
