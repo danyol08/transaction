@@ -12,7 +12,7 @@ from streamlit_option_menu import option_menu
 # Config
 # -----------------------------
 st.set_page_config(page_title="Salon Transaction System", layout="wide")
-st.title("💅 Salon Transaction Management System")
+st.title("Transaction Management System")
 
 # --- Custom Pink Theme ---
 pink_style = """
