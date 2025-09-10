@@ -13,7 +13,6 @@ from streamlit_option_menu import option_menu
 st.set_page_config(page_title="Salon Transaction System", layout="wide")
 st.title("Transaction Management System")
 
-# --- Hide Streamlit Branding, GitHub, Fork, and Menu ---
 hide_st_style = """
     <style>
         #MainMenu {visibility: hidden;}
@@ -23,6 +22,52 @@ hide_st_style = """
     </style>
 """
 st.markdown(hide_st_style, unsafe_allow_html=True)
+
+# --- Extra Responsive & User-Friendly Styles ---
+responsive_style = """
+<style>
+/* General UI inputs */
+.stTextInput, .stSelectbox, .stNumberInput, .stDateInput, .stTextArea {
+    border-radius: 12px !important;
+    padding: 6px !important;
+}
+
+/* Buttons */
+div.stButton > button {
+    border-radius: 12px;
+    padding: 0.6rem 1rem;
+    font-weight: bold;
+    transition: all 0.2s ease-in-out;
+}
+div.stButton > button:hover {
+    transform: scale(1.05);
+    background-color: #ffb6c1;
+    color: black;
+}
+
+/* Dataframe tweaks */
+[data-testid="stDataFrame"] {
+    border-radius: 12px;
+    overflow: auto;
+    font-size: 0.9rem;
+}
+
+/* Tablet responsiveness */
+@media (max-width: 1024px) {
+    .block-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+    h1, h2, h3 {
+        font-size: 1.2rem !important;
+    }
+    div.stButton > button {
+        width: 100% !important;
+    }
+}
+</style>
+"""
+st.markdown(responsive_style, unsafe_allow_html=True)
 
 # -----------------------------
 # Supabase Config
