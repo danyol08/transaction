@@ -3,3 +3,4 @@ pandas>=2.0
 supabase>=2.4.0
 python-dotenv>=1.0.0
 streamlit-option-menu
+plotly
