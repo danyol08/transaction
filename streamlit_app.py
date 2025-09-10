@@ -107,9 +107,6 @@ if not st.session_state.logged_in:
 # -----------------------------
 # Top Menu Bar (Horizontal)
 # -----------------------------
-# -----------------------------
-# Top Menu Bar (Horizontal)
-# -----------------------------
 menu = option_menu(
     "📋 Salon Menu",
     ["Add Transaction", "View Transactions", "Search Customer", "Reports & CSV", "Logout"]
@@ -139,44 +136,6 @@ st.markdown(
 )
 
 st.markdown(f"✅ Logged in as: **{st.session_state.cashier}**")
-
-# 🎨 Extra styling for top nav menu (Pink Palette)
-st.markdown(
-    """
-    <style>
-    /* Nav background color (soft pink) */
-    div[data-testid="stHorizontalBlock"] {
-        background-color: #fce7f3; /* light pink */
-        border-radius: 8px;
-        padding: 10px 0px;
-    }
-
-    /* Nav buttons (text color darker pink) */
-    div[data-testid="stHorizontalBlock"] button {
-        background: transparent !important;
-        color: #9d174d !important; /* rose-900 */
-        font-weight: 500 !important;
-        border: none !important;
-    }
-
-    /* Hover effect (bright pink) */
-    div[data-testid="stHorizontalBlock"] button:hover {
-        color: #db2777 !important; /* rose-600 */
-        transform: scale(1.05);
-    }
-
-    /* Active/Selected button */
-    div[data-testid="stHorizontalBlock"] button[aria-selected="true"] {
-        color: #be185d !important; /* rose-700 */
-        font-weight: 700 !important;
-        border-bottom: 3px solid #f472b6 !important; /* rose-400 underline */
-        border-radius: 0;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
 
 
 # -----------------------------
