@@ -276,10 +276,10 @@ elif menu == "Cashier Management":
                 st.session_state.cashier_success = None
 
             if st.session_state.get("reset_cashier", False):
-                st.session_state.new_cashier_username = ""
-                st.session_state.new_cashier_password = ""
-                st.session_state.new_cashier_confirm = ""
-                st.session_state.new_cashier_fullname = ""
+                st.session_state.pop("new_cashier_username", None)
+                st.session_state.pop("new_cashier_password", None)
+                st.session_state.pop("new_cashier_confirm", None)
+                st.session_state.pop("new_cashier_fullname", None)
                 st.session_state.reset_cashier = False
 
             new_username = st.text_input("New Cashier Username *", key="new_cashier_username")
@@ -322,13 +322,6 @@ elif menu == "Cashier Management":
                         st.session_state.pass_success = None
 
                     selected_user = st.selectbox("Select cashier to change password:", [c["username"] for c in cashiers])
-
-                    # Default values for password reset
-                    if "reset_pass_input" not in st.session_state:
-                        st.session_state.reset_pass_input = ""
-                    if "reset_pass_confirm" not in st.session_state:
-                        st.session_state.reset_pass_confirm = ""
-
                     new_pass = st.text_input("Enter new password", type="password", key="reset_pass_input")
                     confirm_pass = st.text_input("Confirm new password", type="password", key="reset_pass_confirm")
 
@@ -346,9 +339,9 @@ elif menu == "Cashier Management":
 
                                 st.session_state.pass_success = f"✅ Password for cashier '{selected_user}' has been updated!"
 
-                                # ✅ Clear inputs
-                                st.session_state.reset_pass_input = ""
-                                st.session_state.reset_pass_confirm = ""
+                                # ✅ Clear input fields safely
+                                st.session_state.pop("reset_pass_input", None)
+                                st.session_state.pop("reset_pass_confirm", None)
 
                                 st.rerun()
                             except Exception as e:
