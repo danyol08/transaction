@@ -181,7 +181,7 @@ if menu == "Add Transaction":
                     insert_transaction(payload)
                     refresh_transactions_cache()
                     st.success("✅ Transaction saved successfully!")
-                    st.balloons()
+                   # st.balloons()
                 except Exception as e:
                     st.error(f"⚠️ Error saving transaction: {e}")
             else:
