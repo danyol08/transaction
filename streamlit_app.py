@@ -12,9 +12,8 @@ from streamlit_option_menu import option_menu
 # Config
 # -----------------------------
 st.set_page_config(page_title="Salon Transaction System", layout="wide")
-st.title("Transaction Management System")
 
-# --- Custom Pink Theme ---
+# --- Custom Pink Theme + Logo ---
 pink_style = """
     <style>
         /* Hide Streamlit Branding */
@@ -46,9 +45,21 @@ pink_style = """
             text-align: center;
             box-shadow: 0px 2px 6px rgba(0,0,0,0.1);
         }
+
+        /* Sidebar Logo */
+        [data-testid="stSidebarNav"] {
+            background-image: url("https://i.ibb.co/q7P5dph/salon-logo.png");
+            background-repeat: no-repeat;
+            background-position: 20px 20px;
+            padding-top: 120px;
+        }
     </style>
 """
 st.markdown(pink_style, unsafe_allow_html=True)
+
+# Title with emoji (optional)
+st.title("💅 Transaction Management System")
+
 
 # -----------------------------
 # Supabase Config
@@ -329,7 +340,9 @@ elif menu == "Reports & CSV":
         fig2 = px.line(df, x="date_of_service", y="amount", color="cashier_username", title="Daily Sales Trend")
         st.plotly_chart(fig2, use_container_width=True)
 
-        # CSV export
+        # -----------------------------
+        # ⬇️ CSV export
+        # -----------------------------
         st.markdown("### ⬇️ Export Data")
         csv_all = df.to_csv(index=False).encode("utf-8")
         st.download_button("⬇️ Download ALL Transactions (CSV)", csv_all, "transactions_full.csv", "text/csv")
@@ -338,11 +351,21 @@ elif menu == "Reports & CSV":
         # 📅 Daily Report with Totals
         # -----------------------------
         st.markdown("### 📥 Download Daily Report")
-        selected_date = st.date_input("📅 Select Date", date.today())
+
+        col1, col2 = st.columns([2, 2])
+        with col1:
+            selected_date = st.date_input("📅 Select Date", date.today())
+        with col2:
+            technicians = ["All"] + sorted(df["technician_name"].dropna().unique())
+            selected_tech = st.selectbox("🧑‍🎨 Filter by Technician", technicians)
+
+        # Filter by date and technician
         daily_df = df[df["date_of_service"] == str(selected_date)]
+        if selected_tech != "All":
+            daily_df = daily_df[daily_df["technician_name"] == selected_tech]
 
         if daily_df.empty:
-            st.warning(f"❌ No transactions found for {selected_date}.")
+            st.warning(f"❌ No transactions found for {selected_date} ({selected_tech}).")
         else:
             # Compute total sales
             total_sales = daily_df["amount"].sum()
@@ -351,7 +374,7 @@ elif menu == "Reports & CSV":
             total_row = pd.DataFrame([{
                 "customer_name": "TOTAL",
                 "service": "",
-                "technician_name": "",
+                "technician_name": selected_tech if selected_tech != "All" else "",
                 "technician_type": "",
                 "addons": "",
                 "date_of_service": "",
@@ -362,17 +385,18 @@ elif menu == "Reports & CSV":
             export_df = pd.concat([daily_df, total_row], ignore_index=True)
 
             # Show summary in UI
-            st.success(f"💰 Total Sales on {selected_date}: ₱{total_sales:,.2f}")
+            st.success(f"💰 Total Sales on {selected_date} ({selected_tech}): ₱{total_sales:,.2f}")
             st.info(f"🧾 Transactions Count: {len(daily_df)}")
 
             # Download button
             csv_daily = export_df.to_csv(index=False).encode("utf-8")
             st.download_button(
-                label="⬇️ Download DAILY Transactions (CSV)",
+                label=f"⬇️ Download DAILY Report ({selected_tech})",
                 data=csv_daily,
-                file_name=f"transactions_{selected_date}.csv",
+                file_name=f"transactions_{selected_date}_{selected_tech}.csv",
                 mime="text/csv"
             )
+
 
 # -----------------------------
 # Cashier Management
