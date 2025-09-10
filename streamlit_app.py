@@ -196,7 +196,12 @@ elif menu == "View Transactions":
     if df.empty:
         st.info("No transactions yet.")
     else:
+        # ✅ Format created_at to show TIME only
+        if "created_at" in df.columns:
+            df["created_at"] = pd.to_datetime(df["created_at"], errors="coerce").dt.strftime("%H:%M:%S")
+
         st.dataframe(df, use_container_width=True, height=460)
+        st.caption("Tip: Use the ‘Reports & CSV’ tab to filter by date/cashier and download CSV.")
 
 # -----------------------------
 # Search Customer
