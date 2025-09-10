@@ -204,20 +204,25 @@ elif menu == "View Transactions":
 
         # ✅ Format date_of_service for readability
         if "date_of_service" in df.columns:
-            df["date_of_service"] = pd.to_datetime(df["date_of_service"], errors="coerce").dt.strftime("%b %d, %Y")
+            df["date_of_service"] = pd.to_datetime(
+                df["date_of_service"], errors="coerce"
+            ).dt.strftime("%b %d, %Y")
 
         # ✅ Sort by created_at (latest first)
         if "created_at" in df.columns:
             df = df.sort_values(by="created_at", ascending=False)
 
-        # ✅ Drop unwanted columns (id + raw created_at), keep Time
+        # ✅ Drop unwanted columns (id + raw created_at)
         drop_cols = [c for c in ["id", "created_at"] if c in df.columns]
         df = df.drop(columns=drop_cols)
 
-        # ✅ Rename time column and move to first position
+        # ✅ Rename time column
         if "created_at_time" in df.columns:
             df = df.rename(columns={"created_at_time": "Time"})
-            cols = ["Time"] + [c for c in df.columns if c != "Time"]
+
+        # ✅ Reorder so Date of Service & Time are beside each other
+        if "date_of_service" in df.columns and "Time" in df.columns:
+            cols = ["date_of_service", "Time"] + [c for c in df.columns if c not in ["date_of_service", "Time"]]
             df = df[cols]
 
         st.dataframe(df, use_container_width=True, height=460)
