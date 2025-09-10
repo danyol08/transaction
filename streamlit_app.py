@@ -107,6 +107,9 @@ if not st.session_state.logged_in:
 # -----------------------------
 # Top Menu Bar (Horizontal)
 # -----------------------------
+# -----------------------------
+# Top Menu Bar (Horizontal)
+# -----------------------------
 menu = option_menu(
     "📋 Salon Menu",
     ["Add Transaction", "View Transactions", "Search Customer", "Reports & CSV", "Logout"]
@@ -118,7 +121,25 @@ menu = option_menu(
     orientation="horizontal"
 )
 
+# ✅ Make the menu sticky
+st.markdown(
+    """
+    <style>
+    div[data-testid="stHorizontalBlock"] {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background-color: white;
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 st.markdown(f"✅ Logged in as: **{st.session_state.cashier}**")
+
 
 # -----------------------------
 # Add Transaction
